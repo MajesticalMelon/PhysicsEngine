@@ -38,8 +38,6 @@ public class RigidBody {
         this.mass = m;
         this.momentOfInertia = m * w * h;
 
-        calculateEdges();
-
         maxX = cx + w/2;
         maxY = cy + h/2;
 
@@ -50,6 +48,9 @@ public class RigidBody {
         points.add(new Vector2D(maxX, minY));
         points.add(new Vector2D(maxX, maxY));
         points.add(new Vector2D(minX, maxY));
+
+        edges.clear();
+        calculateEdges();
     }
 
     public void update() {
@@ -61,15 +62,17 @@ public class RigidBody {
         this.rotation += this.angVel;
         this.angVel += this.angAcc;
 
-        movePoints();
-
         if (this.rotation > 2 * Math.PI || this.rotation < -2 * Math.PI) {
             this.rotation = 0;
         }
 
+        movePoints();
+
         force = Vector2D.mult(this.linAcc, this.mass);
 
         arrangePoints();
+
+        edges.clear();  
         calculateEdges();
 
         this.linAcc = new Vector2D(0, 0);
@@ -86,20 +89,54 @@ public class RigidBody {
     }
 
     private void conserveLinearMomentum(RigidBody j) {
+        if (this.getMass() > j.getMass()) {
+            Vector2D v1f = Vector2D.add(Vector2D.mult(this.getLinearVelocity(), this.momentumScalar), this.getLinearVelocity());
+            Vector2D v2 = j.getLinearVelocity();
+            Vector2D v2f = Vector2D.sub(v1f, v2);
+            j.setLinearVelocity(v2f);
+            this.setLinearVelocity(v1f);
+        } else {
+            Vector2D v2f = Vector2D.add(Vector2D.mult(j.getLinearVelocity(), j.momentumScalar), j.getLinearVelocity());
+            Vector2D v1 = this.getLinearVelocity();
+            Vector2D v1f = Vector2D.sub(v2f, v1);
+            j.setLinearVelocity(v1f);
+            this.setLinearVelocity(v2f);
+        }
+
+        /*
+        if (this.getLinearVelocity().getX() == 0) {
+            this.setLinearVelocity(new Vector2D(0.001, 0.001));
+        }
+        if (j.getLinearVelocity().getX() == 0) {
+            j.setLinearVelocity(new Vector2D(0.001, 0.001));
+        }
         Vector2D m1 = Vector2D.mult(this.getLinearVelocity(), this.getMass());
         Vector2D m2 = Vector2D.mult(j.getLinearVelocity(), j.getMass());
 
+        Vector2D p = Vector2D.add(m1, m2);
+
         if (this.getMass() > j.getMass()) {
-            m1.mult(1 - this.momentumScalar);
-            Vector2D p = Vector2D.add(m1, m2);
-            j.setLinearVelocity(Vector2D.div(p, j.getMass()));
-            this.setLinearVelocity(Vector2D.mult(this.getLinearVelocity(), this.momentumScalar));
+            Vector2D m1f = Vector2D.mult(m1, (1 - this.momentumScalar));
+            Vector2D pf = Vector2D.add(m1f, m2);
+            Vector2D vf = Vector2D.div(pf, j.getMass());
+            j.setLinearVelocity(vf);
+            
+            Vector2D m2f = Vector2D.mult(vf, j.getMass());
+            p.sub(m2f);
+            p.div(this.getMass());
+            this.setLinearVelocity(p);
         } else {
-            m2.mult(1 - this.momentumScalar);
-            Vector2D p = Vector2D.add(m1, m2);
-            this.setLinearVelocity(Vector2D.div(p, this.getMass()));
-            j.setLinearVelocity(Vector2D.mult(j.getLinearVelocity(), this.momentumScalar));
+            Vector2D m2f = Vector2D.mult(m2, (1 - this.momentumScalar));
+            Vector2D pf = Vector2D.add(m2f, m1);
+            Vector2D vf = Vector2D.div(pf, this.getMass());
+            this.setLinearVelocity(vf);
+
+            Vector2D m1f = Vector2D.mult(this.getLinearVelocity(), this.getMass());
+            p.sub(m1f);
+            p.div(j.getMass());
+            j.setLinearVelocity(p);
         }
+        */
     }
 
     private void conserveAngularMomentum(RigidBody j) {
@@ -109,22 +146,34 @@ public class RigidBody {
         double m1 = this.getMoment() * Vector2D.div(this.getLinearVelocity(), d1).mag();
         double m2 = j.getMoment() * Vector2D.div(j.getLinearVelocity(), d2).mag();
 
+        double l = m1 + m2;
+
         if (this.getMoment() > j.getMoment()) {
-            m1 *= 1 - this.momentumScalar;
-            double l = m1 + m2;
-            j.setAngularVelocity(l / j.getMoment());
-            this.setAngularVelocity(this.getAngularVelocity() * this.momentumScalar);
+            double m1f = m1 * (1 - this.momentumScalar);
+            double lf = m1f + m2;
+            double wf = lf / j.getMoment();
+            j.setAngularVelocity(wf);
+
+            double m2f = wf * j.getMoment();
+            l -= m2f;
+            l /= this.getMoment();
+            j.setAngularVelocity(l);
         } else {
-            m2 *= 1 - this.momentumScalar;
-            double l = m1 + m2;
-            this.setAngularVelocity(l / this.getMoment());
-            j.setAngularVelocity(j.getAngularVelocity() * this.momentumScalar);
+            double m2f = m2 * (1 - this.momentumScalar);
+            double lf = m2f + m1;
+            double wf = lf / this.getMoment();
+            this.setAngularVelocity(wf);
+
+            double m1f = wf * this.getMoment();
+            l -= m1f;
+            l /= j.getMoment();
+            this.setAngularVelocity(l);
         }
     }
 
     public void collide(RigidBody j) {
         this.conserveLinearMomentum(j);
-        this.conserveAngularMomentum(j);
+        //this.conserveAngularMomentum(j);
     }
 
     private void movePoints() {
@@ -152,6 +201,7 @@ public class RigidBody {
         for (int i = 0; i < points.size() - 1; i++) {
             edges.add(Vector2D.sub(points.get(i), points.get(i + 1)));
         }
+        edges.add(Vector2D.sub(points.get(points.size() - 1), points.get(0)));
     }
 
     public Vector2D getPos() {
@@ -206,6 +256,10 @@ public class RigidBody {
         this.angVel = w;
     }
 
+    public void setPos(Vector2D p) {
+        this.pos = p;
+    }
+
     /**
      * @return the rigidibody as polygon
     **/
@@ -255,5 +309,9 @@ public class RigidBody {
 
     public ArrayList<Vector2D> getEdges() {
         return this.edges;
+    }
+
+    public Vector2D getMaxPoint() {
+        return new Vector2D(getMaxX(), getMaxY());
     }
 }
