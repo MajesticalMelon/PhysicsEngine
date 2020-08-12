@@ -60,20 +60,21 @@ public class CollisionDetector {
         ArrayList<Vector2D> posX = new ArrayList<>();
         for (int i = 0; i < s.size(); i++) {
             RigidBody body = s.get(i);
+
+            //i is the y component in order to keep track of which point bleongs to which body when sorted
             posX.add(new Vector2D(body.getMinX(), i));
             posX.add(new Vector2D(body.getMaxX(), i));
         }
 
         sort(posX, 0, posX.size() - 1);
 
-        System.out.println();
         for (int i = 0; i < posX.size() - 1; i++) {
             if ((int) posX.get(i).getY() != (int) posX.get(i + 1).getY()) {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
                 if (SAT(a, b)) {
-                    System.out.println("Collision!");
+                    a.collide(b);
                 }
             } else {
                 i += 2;
@@ -84,12 +85,12 @@ public class CollisionDetector {
     //Implementation of the Seperated Axis Theorem
     public boolean SAT(RigidBody a, RigidBody b) {
         Vector2D perpLine;
-        double dot = 0;
+        double dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
-        double aMin = 0;
-        double aMax = 0;
-        double bMin = 0;
-        double bMax = 0;
+        double aMin = 9999999999999999d;
+        double aMax = -9999999999999999d;
+        double bMin = 9999999999999999d;
+        double bMax = -9999999999999999d;
 
         //Calculate vectors perpendicular to each polygon's edges
         for (int i = 0; i < a.getEdges().size(); i++) {
@@ -110,13 +111,10 @@ public class CollisionDetector {
             perpStack.add(perpLine);
         }
 
+        
         for (int i = 0; i < perpStack.size(); i++) {
-            aMin = 0;
-            aMax = 0;
-            bMin = 0;
-            bMax = 0;
-
             //Calculate dot products between polygon's points and their perpLines
+            //Describes the location of the polyogn's points along an infinite perpendicular line
             for (int j = 0; j < a.getPoints().size(); j++) {
                 dot = Vector2D.dot(a.getPoints().get(j), perpStack.get(i));
 
@@ -141,11 +139,12 @@ public class CollisionDetector {
                 }
             }
 
-            if (!(aMin < bMax && aMin > bMin) || !(bMin < aMax && bMin > aMin)) {
+            if ((aMin < bMax && aMin > bMin) || (bMin < aMax && bMin > aMin)) {
+                continue;
+            } else {
                 return false;
             }
         }
-
         return true;
     }
 }
