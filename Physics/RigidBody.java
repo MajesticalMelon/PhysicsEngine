@@ -132,7 +132,7 @@ public class RigidBody {
             double w2f = num / momentTotal;
             w2f *= 0.9; //Loss of energy
 
-            j.setAngularVelocity(w2f * -1);
+            j.setAngularVelocity(w2f);
 
             double w1f = j.getAngularVelocity() + w2f - this.getAngularVelocity();
             //w1f *= 0.9;
@@ -290,21 +290,5 @@ public class RigidBody {
 
     public Vector2D getMinPoint() {
         return new Vector2D(getMinX(), getMinY());
-    }
-
-    //Approximates the next frame for the body and returns it as a Vector2D
-    public Vector2D getNextPos() {
-        Vector2D next = Vector2D.add(this.getPos(), this.getLinearVelocity());
-        return next;
-    }
-
-    //Approximates the next frame for the points and returns it as a Vector2D array
-    public ArrayList<Vector2D> getNextPoints() {
-        ArrayList<Vector2D> next = new ArrayList<>();
-        for (Vector2D v : this.getPoints()) {
-            next.add(Vector2D.add(v, Vector2D.mult(this.getLinearVelocity(), 2)));
-        }
-        
-        return next;
     }
 }
