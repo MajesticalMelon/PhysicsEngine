@@ -89,37 +89,55 @@ public class RigidBody {
     }
 
     private void conserveLinearMomentum(RigidBody j, Vector2D v1, Vector2D v2) {
-        if (this.getMass() > j.getMass()) {
-            Vector2D v1f = Vector2D.add(Vector2D.mult(v1, this.momentumScalar), v1);
-            Vector2D v2i = v2;
-            Vector2D v2f = Vector2D.add(v1f, v2i);
-            j.setLinearVelocity(v2f);
-            this.setLinearVelocity(v1f);
+        if (Math.round((float) this.getMass()) == Math.round((float) j.getMass())) {
+            Vector2D temp = this.getLinearVelocity();
+            this.setLinearVelocity(j.getLinearVelocity());
+            j.setLinearVelocity(temp);
         } else {
-            Vector2D v2f = Vector2D.add(Vector2D.mult(v2, j.momentumScalar), v2);
-            Vector2D v1i = v1;
-            Vector2D v1f = Vector2D.add(v2f, v1i);
-            j.setLinearVelocity(v1f);
-            this.setLinearVelocity(v2f);
+            Vector2D p1 = Vector2D.mult(this.getLinearVelocity(), this.getMass());
+            Vector2D p2 = Vector2D.mult(j.getLinearVelocity(), j.getMass());
+
+            double massTotal = this.mass + j.getMass();
+
+            Vector2D term = Vector2D.mult(j.getLinearVelocity(), this.getMass());
+            Vector2D num = Vector2D.sub(Vector2D.add(p1, p2), term);
+            Vector2D v2f = Vector2D.div(num, massTotal);
+            v2f.mult(0.9); //Loss of energy
+
+            j.setLinearVelocity(v2f);
+
+            Vector2D v1f = Vector2D.sub(Vector2D.add(j.getLinearVelocity(), v2f), this.getLinearVelocity());
+            //v1f.mult(0.9);
+
+            this.setLinearVelocity(v1f);
         }
+
+        this.addPos(this.getLinearVelocity());
+        j.addPos(j.getLinearVelocity());
     }
 
     private void conserveAngularMomentum(RigidBody j, double w1, double w2) {
-        double d1 = Math.sqrt((this.getPos().getX() * this.getPos().getX()) + (this.getPos().getY() * this.getPos().getY())) * Vector2D.angleBetween(this.getLinearVelocity(), this.getPos());
-        double d2 = Math.sqrt((j.getPos().getX() * j.getPos().getX()) + (j.getPos().getY() * j.getPos().getY())) * Vector2D.angleBetween(j.getLinearVelocity(), j.getPos());
-        
-        if (this.getMoment() > j.getMoment()) {
-            double w1f = w1 + (w1 * this.momentumScalar);
-            double w2i = w2;
-            double w2f = w1f - w2i;
-            j.setAngularVelocity(w2f);
-            this.setAngularVelocity(w1f);
+        if (Math.round((float) this.getMoment()) == Math.round((float) j.getMoment())) {
+            double temp = this.getAngularVelocity();
+            this.setAngularVelocity(j.getAngularVelocity());
+            j.setAngularVelocity(temp);
         } else {
-            double w2f = w2 + (w2 * j.momentumScalar);
-            double w1i = w1;
-            double w1f = w2f - w1i;
-            j.setAngularVelocity(w1f);
-            this.setAngularVelocity(w2f);
+            double l1 = this.getAngularVelocity() * this.getMoment();
+            double l2 = j.getAngularVelocity() * j.getMoment();
+
+            double momentTotal = this.getMoment() + j.getMoment();
+
+            double term = j.getAngularVelocity() * j.getMoment();
+            double num = l1 + l2 - term;
+            double w2f = num / momentTotal;
+            w2f *= 0.9; //Loss of energy
+
+            j.setAngularVelocity(w2f * -1);
+
+            double w1f = j.getAngularVelocity() + w2f - this.getAngularVelocity();
+            //w1f *= 0.9;
+
+            this.setAngularVelocity(w1f);
         }
     }
 
@@ -272,5 +290,21 @@ public class RigidBody {
 
     public Vector2D getMinPoint() {
         return new Vector2D(getMinX(), getMinY());
+    }
+
+    //Approximates the next frame for the body and returns it as a Vector2D
+    public Vector2D getNextPos() {
+        Vector2D next = Vector2D.add(this.getPos(), this.getLinearVelocity());
+        return next;
+    }
+
+    //Approximates the next frame for the points and returns it as a Vector2D array
+    public ArrayList<Vector2D> getNextPoints() {
+        ArrayList<Vector2D> next = new ArrayList<>();
+        for (Vector2D v : this.getPoints()) {
+            next.add(Vector2D.add(v, Vector2D.mult(this.getLinearVelocity(), 2)));
+        }
+        
+        return next;
     }
 }

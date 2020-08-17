@@ -80,7 +80,7 @@ public class CollisionDetector {
                     double w1 = a.getAngularVelocity();
                     double w2 = b.getAngularVelocity();
 
-                    moveOut(a, b);
+                    //moveOut(a, b);
                     a.collide(b, v1, v2, w1, w2);
                 }
             } else {
