@@ -33,6 +33,7 @@ public class Canvas extends JPanel implements ActionListener {
         shapes.add(rectangle);
         //shapes.get(1).applyForce(new Vector2D(200, 0), new Vector2D(0, -100));
         shapes.get(0).applyForce(new Vector2D(5, 0), new Vector2D(0, -3));
+        shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         CD = new CollisionDetector(this.shapes);
     }
 
@@ -46,7 +47,6 @@ public class Canvas extends JPanel implements ActionListener {
 
     private void draw(Graphics2D g2) {
         for (RigidBody body : shapes) {
-            // Rectangle2D.Double e = new Rectangle2D.Double(body.getPos().getX() - (body.getWidth() / 2), body.getPos().getY() - (body.getHeight() / 2), body.getWidth(), body.getHeight());
             g2.setColor(Color.WHITE);
             g2.draw(body.getPolygon());
         }

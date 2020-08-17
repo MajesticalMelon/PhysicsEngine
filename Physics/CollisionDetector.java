@@ -74,7 +74,14 @@ public class CollisionDetector {
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
                 if (SAT(a, b)) {
-                    a.collide(b);
+                    Vector2D v1 = a.getLinearVelocity();
+                    Vector2D v2 = b.getLinearVelocity();
+
+                    double w1 = a.getAngularVelocity();
+                    double w2 = b.getAngularVelocity();
+
+                    moveOut(a, b);
+                    a.collide(b, v1, v2, w1, w2);
                 }
             } else {
                 i += 2;
@@ -87,6 +94,7 @@ public class CollisionDetector {
         Vector2D perpLine;
         double dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
+        //Guarantee that the first dot products are less than the min or greater than the max
         double aMin = 9999999999999999d;
         double aMax = -9999999999999999d;
         double bMin = 9999999999999999d;
@@ -139,12 +147,41 @@ public class CollisionDetector {
                 }
             }
 
+            //Check if bounds of dot products for each polygon intersect
+            //Continue to check until out of points or until the condition is not met
             if ((aMin < bMax && aMin > bMin) || (bMin < aMax && bMin > aMin)) {
                 continue;
             } else {
                 return false;
             }
         }
+        //Return true if the for loop completes
         return true;
+    }
+
+    private void moveOut(RigidBody a, RigidBody b) {
+        a.setAngularVelocity(0);
+        b.setAngularVelocity(0);
+
+        Vector2D overlap = Vector2D.sub(a.getMaxPoint(), b.getMinPoint());
+        
+        Vector2D velTotal = Vector2D.add(Vector2D.add(a.getLinearVelocity(), 0.001), Vector2D.add(b.getLinearVelocity(), 0.001));
+
+        Vector2D velRatioA = Vector2D.div(a.getLinearVelocity(), velTotal);
+        Vector2D velRatioB = Vector2D.div(b.getLinearVelocity(), velTotal);
+
+        
+
+        a.setLinearVelocity(new Vector2D(0, 0));
+        b.setLinearVelocity(new Vector2D(0, 0));
+
+        Vector2D aMove = Vector2D.mult(overlap, velRatioA);
+        Vector2D bMove = Vector2D.mult(overlap, velRatioB);
+
+        aMove.mult(-1);
+        bMove.mult(-1);
+
+        a.addPos(aMove);
+        b.addPos(bMove);
     }
 }
