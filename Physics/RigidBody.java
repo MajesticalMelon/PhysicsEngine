@@ -89,13 +89,18 @@ public class RigidBody {
     }
 
     private void conserveLinearMomentum(RigidBody j, Vector2D v1, Vector2D v2) {
+        Vector2D thisInitialMomentum = Vector2D.mult(this.getLinearVelocity(), this.getMass());
+        Vector2D jInitialMomentum = Vector2D.mult(j.getLinearVelocity(), j.getMass());
+
+        Vector2D thisFinalMomentum;
+        Vector2D jFinalMomentum;
+
         if (Math.round((float) this.getMass()) == Math.round((float) j.getMass())) {
-            Vector2D temp = this.getLinearVelocity();
-            this.setLinearVelocity(j.getLinearVelocity());
-            j.setLinearVelocity(temp);
+            thisFinalMomentum = Vector2D.mult(j.getLinearVelocity(), this.getMass());
+            jFinalMomentum = Vector2D.mult(this.getLinearVelocity(), j.getMass());
         } else {
-            Vector2D p1 = Vector2D.mult(this.getLinearVelocity(), this.getMass());
-            Vector2D p2 = Vector2D.mult(j.getLinearVelocity(), j.getMass());
+            Vector2D p1 = thisInitialMomentum;
+            Vector2D p2 = jInitialMomentum;
 
             double massTotal = this.mass + j.getMass();
 
@@ -104,16 +109,22 @@ public class RigidBody {
             Vector2D v2f = Vector2D.div(num, massTotal);
             v2f.mult(0.9); //Loss of energy
 
-            j.setLinearVelocity(v2f);
+            jFinalMomentum = Vector2D.mult(v2f, j.getMass());
 
             Vector2D v1f = Vector2D.sub(Vector2D.add(j.getLinearVelocity(), v2f), this.getLinearVelocity());
-            //v1f.mult(0.9);
+            v1f.mult(0.9);
 
-            this.setLinearVelocity(v1f);
+            thisFinalMomentum = Vector2D.mult(v1f, this.getMass());
         }
 
-        this.addPos(this.getLinearVelocity());
-        j.addPos(j.getLinearVelocity());
+        Vector2D thisChangeMomentum = Vector2D.sub(thisFinalMomentum, thisInitialMomentum);
+        Vector2D jChangeMomentum = Vector2D.sub(jFinalMomentum, jInitialMomentum);
+
+        thisChangeMomentum.div(1000/60);
+        jChangeMomentum.div(1000/60);
+
+        this.applyForce(thisChangeMomentum, j.getMinPoint());
+        j.applyForce(jChangeMomentum, j.getMinPoint());
     }
 
     private void conserveAngularMomentum(RigidBody j, double w1, double w2) {
@@ -141,9 +152,9 @@ public class RigidBody {
         }
     }
 
-    public void collide(RigidBody j, Vector2D v1, Vector2D v2, double w1, double w2) {
-        this.conserveLinearMomentum(j, v1, v2);
-        this.conserveAngularMomentum(j, w1, w2);
+    public void collide(RigidBody j, Vector2D forcePos) {
+        //this.conserveLinearMomentum(j, v1, v2);
+        //this.conserveAngularMomentum(j, w1, w2);
     }
 
     private void movePoints() {

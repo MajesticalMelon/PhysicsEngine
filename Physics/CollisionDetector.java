@@ -4,8 +4,9 @@ import java.util.ArrayList;
 
 
 public class CollisionDetector {
-    
     ArrayList<RigidBody> bodies = new ArrayList<>();
+
+    Vector2D contactPoint;
 
     public CollisionDetector(ArrayList<RigidBody> s) {
         bodies = s;
@@ -73,15 +74,10 @@ public class CollisionDetector {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
+                //TODO: Calculate radius that force is applied
                 if (SAT(a, b)) {
-                    Vector2D v1 = a.getLinearVelocity();
-                    Vector2D v2 = b.getLinearVelocity();
-
-                    double w1 = a.getAngularVelocity();
-                    double w2 = b.getAngularVelocity();
-
                     //moveOut(a, b);
-                    a.collide(b, v1, v2, w1, w2);
+                    a.collide(b, a.getMaxPoint());
                 }
             } else {
                 i += 2;
