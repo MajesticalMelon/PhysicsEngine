@@ -62,9 +62,9 @@ public class RigidBody {
         this.rotation += this.angVel;
         this.angVel += this.angAcc;
 
-        if (this.rotation > 2 * Math.PI || this.rotation < -2 * Math.PI) {
-            this.rotation = 0;
-        }
+        // if (this.rotation > 2 * Math.PI || this.rotation < -2 * Math.PI) {
+        //     this.rotation = 0;
+        // }
 
         movePoints();
 
@@ -86,75 +86,19 @@ public class RigidBody {
 
         force.div(this.mass);
         this.linAcc.add(force);
+
+        System.out.println("x");
     }
 
-    private void conserveLinearMomentum(RigidBody j, Vector2D v1, Vector2D v2) {
-        Vector2D thisInitialMomentum = Vector2D.mult(this.getLinearVelocity(), this.getMass());
-        Vector2D jInitialMomentum = Vector2D.mult(j.getLinearVelocity(), j.getMass());
-
-        Vector2D thisFinalMomentum;
-        Vector2D jFinalMomentum;
-
-        if (Math.round((float) this.getMass()) == Math.round((float) j.getMass())) {
-            thisFinalMomentum = Vector2D.mult(j.getLinearVelocity(), this.getMass());
-            jFinalMomentum = Vector2D.mult(this.getLinearVelocity(), j.getMass());
-        } else {
-            Vector2D p1 = thisInitialMomentum;
-            Vector2D p2 = jInitialMomentum;
-
-            double massTotal = this.mass + j.getMass();
-
-            Vector2D term = Vector2D.mult(j.getLinearVelocity(), this.getMass());
-            Vector2D num = Vector2D.sub(Vector2D.add(p1, p2), term);
-            Vector2D v2f = Vector2D.div(num, massTotal);
-            v2f.mult(0.9); //Loss of energy
-
-            jFinalMomentum = Vector2D.mult(v2f, j.getMass());
-
-            Vector2D v1f = Vector2D.sub(Vector2D.add(j.getLinearVelocity(), v2f), this.getLinearVelocity());
-            v1f.mult(0.9);
-
-            thisFinalMomentum = Vector2D.mult(v1f, this.getMass());
-        }
-
-        Vector2D thisChangeMomentum = Vector2D.sub(thisFinalMomentum, thisInitialMomentum);
-        Vector2D jChangeMomentum = Vector2D.sub(jFinalMomentum, jInitialMomentum);
-
-        thisChangeMomentum.div(1000/60);
-        jChangeMomentum.div(1000/60);
-
-        this.applyForce(thisChangeMomentum, j.getMinPoint());
-        j.applyForce(jChangeMomentum, j.getMinPoint());
-    }
-
-    private void conserveAngularMomentum(RigidBody j, double w1, double w2) {
-        if (Math.round((float) this.getMoment()) == Math.round((float) j.getMoment())) {
-            double temp = this.getAngularVelocity();
-            this.setAngularVelocity(j.getAngularVelocity());
-            j.setAngularVelocity(temp);
-        } else {
-            double l1 = this.getAngularVelocity() * this.getMoment();
-            double l2 = j.getAngularVelocity() * j.getMoment();
-
-            double momentTotal = this.getMoment() + j.getMoment();
-
-            double term = j.getAngularVelocity() * j.getMoment();
-            double num = l1 + l2 - term;
-            double w2f = num / momentTotal;
-            w2f *= 0.9; //Loss of energy
-
-            j.setAngularVelocity(w2f);
-
-            double w1f = j.getAngularVelocity() + w2f - this.getAngularVelocity();
-            //w1f *= 0.9;
-
-            this.setAngularVelocity(w1f);
-        }
-    }
 
     public void collide(RigidBody j, Vector2D forcePos) {
-        //this.conserveLinearMomentum(j, v1, v2);
-        //this.conserveAngularMomentum(j, w1, w2);
+        Vector2D iForce = Vector2D.sub(Vector2D.mult(this.getLinearVelocity(), 2), j.getLinearVelocity());
+        iForce.mult(-j.getMass() / (1000/60));
+
+        Vector2D jForce = Vector2D.mult(iForce, -1);
+
+        this.applyForce(iForce, forcePos);
+        j.applyForce(jForce, forcePos);
     }
 
     private void movePoints() {

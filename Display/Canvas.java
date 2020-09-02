@@ -18,11 +18,11 @@ public class Canvas extends JPanel implements ActionListener {
 
     public ArrayList<RigidBody> shapes = new ArrayList<>();
 
-    public Timer gameTimer = new Timer(100, this);
+    public Timer gameTimer = new Timer(1000/60, this);
 
     CollisionDetector CD;
 
-    RigidBody square = new RigidBody(100, 450, 50, 50, 1);
+    RigidBody square = new RigidBody(100, 450, 50, 50, 9);
     RigidBody rectangle = new RigidBody(320, 300, 100, 300, 10);
 
     public Canvas() {
