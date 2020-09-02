@@ -49,8 +49,10 @@ public class RigidBody {
         points.add(new Vector2D(maxX, maxY));
         points.add(new Vector2D(minX, maxY));
 
-        edges.clear();
-        calculateEdges();
+        for (int i = 0; i < points.size() - 1; i++) {
+            edges.add(Vector2D.sub(points.get(i), points.get(i + 1)));
+        }
+        edges.add(Vector2D.sub(points.get(points.size() - 1), points.get(0)));
     }
 
     public void update() {
@@ -62,17 +64,12 @@ public class RigidBody {
         this.rotation += this.angVel;
         this.angVel += this.angAcc;
 
-        // if (this.rotation > 2 * Math.PI || this.rotation < -2 * Math.PI) {
-        //     this.rotation = 0;
-        // }
-
         movePoints();
 
         force = Vector2D.mult(this.linAcc, this.mass);
 
         arrangePoints();
 
-        edges.clear();  
         calculateEdges();
 
         this.linAcc = new Vector2D(0, 0);
@@ -92,10 +89,11 @@ public class RigidBody {
 
 
     public void collide(RigidBody j, Vector2D forcePos) {
-        Vector2D iForce = Vector2D.sub(Vector2D.mult(this.getLinearVelocity(), 2), j.getLinearVelocity());
-        iForce.mult(-j.getMass() / (1000/60));
+        Vector2D jForce = Vector2D.sub(Vector2D.mult(this.getLinearVelocity(), 2), j.getLinearVelocity());
+        jForce.mult(this.getMass() / ((1000 * j.getMass())/60));
 
-        Vector2D jForce = Vector2D.mult(iForce, -1);
+        Vector2D iForce = Vector2D.sub(j.getLinearVelocity(), Vector2D.mult(this.getLinearVelocity(), 2));
+        iForce.mult(j.getMass() / ((1000 * this.getMass())/60));
 
         this.applyForce(iForce, forcePos);
         j.applyForce(jForce, forcePos);
@@ -124,9 +122,9 @@ public class RigidBody {
 
     private void calculateEdges() {
         for (int i = 0; i < points.size() - 1; i++) {
-            edges.add(Vector2D.sub(points.get(i), points.get(i + 1)));
+            edges.get(i).set(Vector2D.sub(points.get(i), points.get(i + 1)));
         }
-        edges.add(Vector2D.sub(points.get(points.size() - 1), points.get(0)));
+        edges.get(points.size() - 1).set(Vector2D.sub(points.get(points.size() - 1), points.get(0)));
     }
 
     public Vector2D getPos() {
