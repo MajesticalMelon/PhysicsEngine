@@ -77,10 +77,10 @@ public class CollisionDetector {
                 //TODO: Calculate radius that force is applied
                 if (SAT(a, b)) {
                     //moveOut(a, b);
-                    a.collide(b, a.getMaxPoint());
+                    a.collide(b);
                 }
             } else {
-                i+=2;
+                //i+=2;
             }
         }
     }

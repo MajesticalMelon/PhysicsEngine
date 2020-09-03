@@ -88,15 +88,31 @@ public class RigidBody {
     }
 
 
-    public void collide(RigidBody j, Vector2D forcePos) {
-        Vector2D jForce = Vector2D.sub(Vector2D.mult(this.getLinearVelocity(), 2), j.getLinearVelocity());
-        jForce.mult(this.getMass() / ((1000 * j.getMass())/60));
+    public void collide(RigidBody j) {
+        //Calculat force form this rigidbody
+        Vector2D jMomentum = Vector2D.mult(j.getLinearVelocity(), j.getMass());
+        Vector2D iMomentum = Vector2D.mult(this.getLinearVelocity(), this.getMass());
+        double totalMass = this.getMass() + j.getMass();
 
-        Vector2D iForce = Vector2D.sub(j.getLinearVelocity(), Vector2D.mult(this.getLinearVelocity(), 2));
-        iForce.mult(j.getMass() / ((1000 * this.getMass())/60));
+        Vector2D combinedMomentum = Vector2D.mult(this.getLinearVelocity(), 2 * j.getMass());
+        jMomentum.mult(2);
+        jMomentum.sub(combinedMomentum);
+        jMomentum.div(totalMass);
 
-        this.applyForce(iForce, forcePos);
-        j.applyForce(jForce, forcePos);
+        double scalar = this.getMass() / (1000/60);
+        jMomentum.mult(scalar);
+
+        //Calculate force for j rigidbody
+        combinedMomentum = Vector2D.mult(j.getLinearVelocity(), 2 * this.getMass());
+        iMomentum.mult(2);
+        iMomentum.sub(combinedMomentum);
+        iMomentum.div(totalMass);
+        
+        scalar *= j.getMass() / this.getMass();
+        iMomentum.mult(scalar);
+
+        this.applyForce(jMomentum, this.getMaxPoint());
+        j.applyForce(iMomentum, j.getMinPoint());
     }
 
     private void movePoints() {
@@ -125,6 +141,10 @@ public class RigidBody {
             edges.get(i).set(Vector2D.sub(points.get(i), points.get(i + 1)));
         }
         edges.get(points.size() - 1).set(Vector2D.sub(points.get(points.size() - 1), points.get(0)));
+
+        for (Vector2D e : edges) {
+            e.add(this.getPos());
+        }
     }
 
     public Vector2D getPos() {
