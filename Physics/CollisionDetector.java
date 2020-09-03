@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
+    Vector2D[] maxMin = new Vector2D[2];
 
     Vector2D contactPoint;
 
@@ -74,10 +75,15 @@ public class CollisionDetector {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
-                //TODO: Calculate radius that force is applied
+                if (a.getPos().getX() > b.getPos().getX()) {
+                    RigidBody temp = a;
+                    a = b;
+                    b = temp;
+                }
+
                 if (SAT(a, b)) {
                     //moveOut(a, b);
-                    a.collide(b);
+                    a.collide(b, maxMin);
                 }
             } else {
                 //i+=2;
@@ -91,25 +97,25 @@ public class CollisionDetector {
         double dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
         //Guarantee that the first dot products are less than the min or greater than the max
-        double aMin = Double.MAX_VALUE;
-        double aMax = -Double.MAX_VALUE + 1;
-        double bMin = Double.MAX_VALUE;
-        double bMax = -Double.MAX_VALUE + 1;
+        Vector2D aMin = new Vector2D(Double.MAX_VALUE, 0);
+        Vector2D aMax = new Vector2D(-Double.MAX_VALUE + 1, 0);
+        Vector2D bMin = new Vector2D(Double.MAX_VALUE, 0);
+        Vector2D bMax = new Vector2D(-Double.MAX_VALUE + 1, 0);
 
         //Calculate vectors perpendicular to each polygon's edges
-        for (int i = 0; i < a.getEdges().size(); i++) {
+        for (int i = 0; i < a.getPoints().size(); i++) {
             perpLine = new Vector2D(
-                -a.edges.get(i).getY(), 
-                a.edges.get(i).getX()
+                -a.getPoints().get(i).getY(), 
+                a.getPoints().get(i).getX()
             );
 
             perpStack.add(perpLine);
         }
 
-        for (int i = 0; i < b.getEdges().size(); i++) {
+        for (int i = 0; i < b.getPoints().size(); i++) {
             perpLine = new Vector2D(
-                -b.edges.get(i).getY(), 
-                b.edges.get(i).getX()
+                -b.getPoints().get(i).getY(), 
+                b.getPoints().get(i).getX()
             );
 
             perpStack.add(perpLine);
@@ -122,30 +128,33 @@ public class CollisionDetector {
             for (int j = 0; j < a.getPoints().size(); j++) {
                 dot = Vector2D.dot(a.getPoints().get(j), perpStack.get(i));
 
-                if (dot > aMax) {
-                    aMax = dot;
+                if (dot > aMax.getX()) {
+                    aMax.set(dot , j);
                 }
 
-                if (dot < aMin) {
-                    aMin = dot;
+                if (dot < aMin.getX()) {
+                    aMin.set(dot, j);
                 }
             }
 
-            for (int j = 0; j < a.getPoints().size(); j++) {
+            for (int j = 0; j < b.getPoints().size(); j++) {
                 dot = Vector2D.dot(b.getPoints().get(j), perpStack.get(i));
 
-                if (dot > bMax) {
-                    bMax = dot;
+                if (dot > bMax.getX()) {
+                    bMax.set(dot, j);
                 }
 
-                if (dot < bMin) {
-                    bMin = dot;
+                if (dot < bMin.getX()) {
+                    bMin.set(dot, j);
                 }
             }
+
+            maxMin[0] = a.getPoints().get((int) aMax.getY());
+            maxMin[1] = b.getPoints().get((int) bMin.getY());
 
             //Check if bounds of dot products for each polygon intersect
             //Continue to check until out of points or until the condition is not met
-            if (!((aMin < bMax && aMin > bMin) || (bMin < aMax && bMin > aMin))) {
+            if (!((aMin.getX() < bMax.getX() && aMin.getX() > bMin.getX()) || (bMin.getX() < aMax.getX() && bMin.getX() > aMin.getX()))) {
                 return false;
             }
         }

@@ -33,7 +33,7 @@ public class Canvas extends JPanel implements ActionListener {
         shapes.add(rectangle);
         //shapes.get(1).applyForce(new Vector2D(200, 0), new Vector2D(0, -100));
         shapes.get(0).applyForce(new Vector2D(10, 0), new Vector2D(0, 6));
-        shapes.get(1).applyForce(new Vector2D(-15, 0), new Vector2D(0, 6));
+        shapes.get(1).applyForce(new Vector2D(0, 0), new Vector2D(0, 6));
         CD = new CollisionDetector(this.shapes);
     }
 
