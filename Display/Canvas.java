@@ -19,29 +19,30 @@ public class Canvas extends JPanel implements ActionListener {
     public ArrayList<RigidBody> shapes = new ArrayList<>();
 
     public Timer gameTimer = new Timer(1000/60, this);
+    private int delay = 0;
 
     CollisionDetector CD;
 
-    RigidBody square = new RigidBody(100, 450, 50, 50, 10);
-    RigidBody rectangle = new RigidBody(320, 300, 100, 300, 5);
+    RigidBody square = new RigidBody(100, 350, 50, 50, 10);
+    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 100);
 
     public Canvas() {
         setBackground(new Color(50, 50, 50));
-        gameTimer.start();
 
         shapes.add(square);
         shapes.add(rectangle);
         //shapes.get(1).applyForce(new Vector2D(200, 0), new Vector2D(0, -100));
-        shapes.get(0).applyForce(new Vector2D(10, 0), new Vector2D(0, 6));
-        shapes.get(1).applyForce(new Vector2D(0, 0), new Vector2D(0, 6));
+        shapes.get(0).applyForce(new Vector2D(0, 5), new Vector2D(0, 6));
+        shapes.get(1).applyForce(new Vector2D(-100, 0), new Vector2D(0, 20));
         CD = new CollisionDetector(this.shapes);
+        gameTimer.start();
     }
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
         Graphics2D g2 = (Graphics2D) g;
-        g2.translate(0, 0);
+        //g2.translate(0, 0);
         this.draw(g2);
     }
 
@@ -54,10 +55,13 @@ public class Canvas extends JPanel implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        for (RigidBody body : shapes) {
-            body.update();
+        delay++;
+        if (delay > 100) {
+            for (RigidBody body : shapes) {
+                body.update();
+            }
+            CD.detectCollision(this.shapes);
         }
-        CD.detectCollision(this.shapes);
         repaint();
     }
 }

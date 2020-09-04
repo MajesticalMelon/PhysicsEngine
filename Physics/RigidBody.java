@@ -1,13 +1,13 @@
 package Physics;
 
 import java.awt.Polygon;
-import java.net.Socket;
 import java.util.ArrayList;
 
 public class RigidBody {
     //Initial variables
     double width, height, mass;
     ArrayList<Vector2D> points = new ArrayList<>();
+    ArrayList<Vector2D> edges = new ArrayList<>();
 
     //Linear variables
     Vector2D pos;
@@ -38,16 +38,20 @@ public class RigidBody {
         this.mass = m;
         this.momentOfInertia = m * w * h;
 
-        maxX = cx + w/2;
-        maxY = cy + h/2;
+        maxX = cx + (w/2);
+        maxY = cy + (h/2);
 
-        minX = cx - w/2;
-        minY = cy - h/2;
+        minX = cx - (w/2);
+        minY = cy - (h/2);
 
         points.add(new Vector2D(minX, minY));
         points.add(new Vector2D(maxX, minY));
         points.add(new Vector2D(maxX, maxY));
         points.add(new Vector2D(minX, maxY));
+
+        for (int i = 0; i < points.size(); i++) {
+            edges.add(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
+        }
     }
 
     public void update() {
@@ -64,11 +68,10 @@ public class RigidBody {
         force = Vector2D.mult(this.linAcc, this.mass);
 
         arrangePoints();
+        calculateEdges();
 
         this.linAcc = new Vector2D(0, 0);
         this.angAcc = 0;
-
-        System.out.println(this.getAngularVelocity());
     }
 
     public void applyForce(Vector2D force, Vector2D forcePos) {
@@ -81,8 +84,8 @@ public class RigidBody {
     }
 
 
-    public void collide(RigidBody j, Vector2D[] p) {
-        //Calculat force form this rigidbody
+    public void collide(RigidBody j, Vector2D pA, Vector2D pB) {
+        //Calculate force form this rigidbody
         Vector2D jMomentum = Vector2D.mult(j.getLinearVelocity(), j.getMass());
         Vector2D iMomentum = Vector2D.mult(this.getLinearVelocity(), this.getMass());
         double totalMass = this.getMass() + j.getMass();
@@ -104,8 +107,8 @@ public class RigidBody {
         scalar *= j.getMass() / this.getMass();
         iMomentum.mult(scalar);
 
-        this.applyForce(jMomentum, p[0]);
-        j.applyForce(iMomentum, p[1]);
+        this.applyForce(jMomentum, pA);
+        j.applyForce(iMomentum, pB);
     }
 
     private void movePoints() {
@@ -129,8 +132,18 @@ public class RigidBody {
         }
     }
 
+    private void calculateEdges() {
+        for (int i = 0; i < points.size(); i++) {
+            edges.get(i).set(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
+        }
+    }
+
     public Vector2D getPos() {
         return this.pos;
+    }
+
+    public ArrayList<Vector2D> getEdges() {
+        return this.edges;
     }
 
     public double getWidth() {
