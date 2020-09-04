@@ -5,7 +5,8 @@ import java.util.ArrayList;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
-    Vector2D[] maxMin = new Vector2D[2];
+    Vector2D pocA = new Vector2D(0, 0);
+    Vector2D pocB = new Vector2D(0, 0);
 
     Vector2D contactPoint;
 
@@ -75,18 +76,15 @@ public class CollisionDetector {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
-                if (a.getPos().getX() > b.getPos().getX()) {
-                    RigidBody temp = a;
-                    a = b;
-                    b = temp;
-                }
+                boolean collision = SAT(a, b);
+                System.out.println(collision);
 
-                if (SAT(a, b)) {
+                if (collision) {
                     //moveOut(a, b);
-                    a.collide(b, maxMin);
+                    a.collide(b, pocA, pocB);
                 }
             } else {
-                //i+=2;
+                i+=2;
             }
         }
     }
@@ -98,30 +96,34 @@ public class CollisionDetector {
         ArrayList<Vector2D> perpStack = new ArrayList<>();
         //Guarantee that the first dot products are less than the min or greater than the max
         Vector2D aMin = new Vector2D(Double.MAX_VALUE, 0);
-        Vector2D aMax = new Vector2D(-Double.MAX_VALUE + 1, 0);
+        Vector2D aMax = new Vector2D(-Double.MAX_VALUE + 10, 0);
         Vector2D bMin = new Vector2D(Double.MAX_VALUE, 0);
-        Vector2D bMax = new Vector2D(-Double.MAX_VALUE + 1, 0);
+        Vector2D bMax = new Vector2D(-Double.MAX_VALUE + 10, 0);
+
+        Vector2D aMaxPoint;
+        Vector2D aMinPoint;
+        Vector2D bMaxPoint;
+        Vector2D bMinPoint;
 
         //Calculate vectors perpendicular to each polygon's edges
-        for (int i = 0; i < a.getPoints().size(); i++) {
+        for (int i = 0; i < a.getEdges().size(); i++) {
             perpLine = new Vector2D(
-                -a.getPoints().get(i).getY(), 
-                a.getPoints().get(i).getX()
+                -a.getEdges().get(i).getY(), 
+                a.getEdges().get(i).getX()
             );
 
             perpStack.add(perpLine);
         }
 
-        for (int i = 0; i < b.getPoints().size(); i++) {
+        for (int i = 0; i < b.getEdges().size(); i++) {
             perpLine = new Vector2D(
-                -b.getPoints().get(i).getY(), 
-                b.getPoints().get(i).getX()
+                -b.getEdges().get(i).getY(), 
+                b.getEdges().get(i).getX()
             );
 
             perpStack.add(perpLine);
         }
 
-        
         for (int i = 0; i < perpStack.size(); i++) {
             //Calculate dot products between polygon's points and their perpLines
             //Describes the location of the polyogn's points along an infinite perpendicular line
@@ -149,15 +151,29 @@ public class CollisionDetector {
                 }
             }
 
-            maxMin[0] = a.getPoints().get((int) aMax.getY());
-            maxMin[1] = b.getPoints().get((int) bMin.getY());
-
             //Check if bounds of dot products for each polygon intersect
             //Continue to check until out of points or until the condition is not met
             if (!((aMin.getX() < bMax.getX() && aMin.getX() > bMin.getX()) || (bMin.getX() < aMax.getX() && bMin.getX() > aMin.getX()))) {
                 return false;
             }
         }
+
+        aMaxPoint = a.getPoints().get((int) aMax.getY());
+        aMinPoint = a.getPoints().get((int) aMin.getY());
+        bMaxPoint = b.getPoints().get((int) bMax.getY());
+        bMinPoint = b.getPoints().get((int) bMin.getY());
+
+        double distAMaxToB = Vector2D.sub(aMaxPoint, b.getPos()).mag();
+        double distBMaxToA = Vector2D.sub(bMaxPoint, a.getPos()).mag();
+        double distAMinToB = Vector2D.sub(aMinPoint, b.getPos()).mag();
+        double distBMinToA = Vector2D.sub(bMinPoint, a.getPos()).mag();
+
+        double radiusToA = Math.min(distAMaxToB, distAMinToB);
+        pocB = new Vector2D(radiusToA, radiusToA);
+
+        double radiusToB = Math.min(distBMaxToA, distBMinToA);
+        pocA = new Vector2D(radiusToB, radiusToB);
+
         //Return true if the for loop completes
         return true;
     }
