@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class RigidBody {
     //Initial variables
-    double width, height, mass;
+    float width, height, mass;
     ArrayList<Vector2D> points = new ArrayList<>();
     ArrayList<Vector2D> edges = new ArrayList<>();
 
@@ -15,23 +15,23 @@ public class RigidBody {
     Vector2D linAcc = new Vector2D(0, 0);
 
     //Angular variables
-    double rotation = 0;
-    double angVel = 0;
-    double angAcc = 0;
+    float rotation = 0;
+    float angVel = 0;
+    float angAcc = 0;
 
     //Physics variables
-    double momentOfInertia;
-    double distanceFromPivot;
-    double momentumScalar = 0.5;
+    float momentOfInertia;
+    float distanceFromPivot;
+    float momentumScalar = 0.5f;
     Vector2D force = new Vector2D(0, 0);
 
     //Collision variables
-    double maxX = 0;
-    double maxY = 0;
-    double minX = 0;
-    double minY = 0;
+    float maxX = 0;
+    float maxY = 0;
+    float minX = 0;
+    float minY = 0;
 
-    public RigidBody(double cx, double cy, double w, double h, double m) {
+    public RigidBody(float cx, float cy, float w, float h, float m) {
         this.pos = new Vector2D(cx, cy);
         this.width = w;
         this.height = h;
@@ -75,7 +75,7 @@ public class RigidBody {
     }
 
     public void applyForce(Vector2D force, Vector2D forcePos) {
-        double angleBetween = Math.atan2(force.getY(), force.getX()) - Math.atan2(forcePos.getY(), forcePos.getX());
+        float angleBetween = (float) (Math.atan2(force.getY(), force.getX()) - Math.atan2(forcePos.getY(), forcePos.getX()));
 
         this.angAcc += (force.mag() * forcePos.mag() * Math.sin(angleBetween)) / this.getMoment();
 
@@ -88,15 +88,15 @@ public class RigidBody {
         //Calculate force form this rigidbody
         Vector2D jMomentum = Vector2D.mult(j.getLinearVelocity(), j.getMass());
         Vector2D iMomentum = Vector2D.mult(this.getLinearVelocity(), this.getMass());
-        double totalMass = this.getMass() + j.getMass();
+        float totalMass = this.getMass() + j.getMass();
 
         Vector2D combinedMomentum = Vector2D.mult(this.getLinearVelocity(), 2 * j.getMass());
         jMomentum.mult(2);
         jMomentum.sub(combinedMomentum);
         jMomentum.div(totalMass);
 
-        double scalar = this.getMass() / (1000/60);
-        jMomentum.mult(scalar);
+        float scalar = this.getMass() / (1000/60);
+        jMomentum.mult(scalar * 0.85f);
 
         //Calculate force for j rigidbody
         combinedMomentum = Vector2D.mult(j.getLinearVelocity(), 2 * this.getMass());
@@ -105,7 +105,7 @@ public class RigidBody {
         iMomentum.div(totalMass);
         
         scalar *= j.getMass() / this.getMass();
-        iMomentum.mult(scalar);
+        iMomentum.mult(scalar * 0.85f);
 
         this.applyForce(jMomentum, pA);
         j.applyForce(iMomentum, pB);
@@ -114,8 +114,8 @@ public class RigidBody {
     private void movePoints() {
         for (Vector2D v : points) {
             v.sub(this.getPos());
-            double rotatedX = v.getX() * Math.cos(this.getAngularVelocity()) - v.getY() * Math.sin(this.getAngularVelocity());
-            double rotatedY = v.getX() * Math.sin(this.getAngularVelocity()) + v.getY() * Math.cos(this.getAngularVelocity());
+            float rotatedX = (float) (v.getX() * Math.cos(this.getAngularVelocity()) - v.getY() * Math.sin(this.getAngularVelocity()));
+            float rotatedY = (float) (v.getX() * Math.sin(this.getAngularVelocity()) + v.getY() * Math.cos(this.getAngularVelocity()));
             v.set(rotatedX, rotatedY);
             v.add(this.getPos());
             v.add(this.getLinearVelocity());
@@ -146,19 +146,19 @@ public class RigidBody {
         return this.edges;
     }
 
-    public double getWidth() {
+    public float getWidth() {
         return this.width;
     }
 
-    public double getHeight() {
+    public float getHeight() {
         return this.height;
     }
 
-    public double getAngle() {
+    public float getAngle() {
         return this.rotation;
     }
 
-    public double getMass() {
+    public float getMass() {
         return this.mass;
     }
 
@@ -166,15 +166,15 @@ public class RigidBody {
         return this.linVel;
     }
 
-    public double getAngularVelocity() {
+    public float getAngularVelocity() {
         return this.angVel;
     }
 
-    public double getAngularAcceleration() {
+    public float getAngularAcceleration() {
         return this.angAcc;
     }
 
-    public double getMoment() {
+    public float getMoment() {
         return this.momentOfInertia;
     }
 
@@ -182,7 +182,7 @@ public class RigidBody {
         this.linVel = v;
     }
 
-    public void setAngularVelocity(double w) {
+    public void setAngularVelocity(float w) {
         this.angVel = w;
     }
 
@@ -190,7 +190,7 @@ public class RigidBody {
         this.linVel = v;
     }
 
-    public void setAngularAcceleration(double w) {
+    public void setAngularAcceleration(float w) {
         this.angVel = w;
     }
 
@@ -215,28 +215,28 @@ public class RigidBody {
     /**
      * @return the maxX
      */
-    public double getMaxX() {
+    public float getMaxX() {
         return maxX;
     }
 
     /**
      * @return the maxY
      */
-    public double getMaxY() {
+    public float getMaxY() {
         return maxY;
     }
 
     /**
      * @return the minX
      */
-    public double getMinX() {
+    public float getMinX() {
         return minX;
     }
 
     /**
      * @return the minY
      */
-    public double getMinY() {
+    public float getMinY() {
         return minY;
     }
 

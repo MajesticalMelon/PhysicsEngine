@@ -18,13 +18,13 @@ public class Canvas extends JPanel implements ActionListener {
 
     public ArrayList<RigidBody> shapes = new ArrayList<>();
 
-    public Timer gameTimer = new Timer(1000/60, this);
+    public Timer gameTimer = new Timer(1000/144, this);
     private int delay = 0;
 
     CollisionDetector CD;
 
     RigidBody square = new RigidBody(100, 350, 50, 50, 10);
-    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 100);
+    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 1);
 
     public Canvas() {
         setBackground(new Color(50, 50, 50));
@@ -32,8 +32,8 @@ public class Canvas extends JPanel implements ActionListener {
         shapes.add(square);
         shapes.add(rectangle);
         //shapes.get(1).applyForce(new Vector2D(200, 0), new Vector2D(0, -100));
-        shapes.get(0).applyForce(new Vector2D(0, 5), new Vector2D(0, 6));
-        shapes.get(1).applyForce(new Vector2D(-100, 0), new Vector2D(0, 20));
+        shapes.get(0).applyForce(new Vector2D(15, 2), new Vector2D(5, 0));
+        //shapes.get(1).applyForce(new Vector2D(-100, 0), new Vector2D(0, 20));
         CD = new CollisionDetector(this.shapes);
         gameTimer.start();
     }

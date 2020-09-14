@@ -1,14 +1,14 @@
 package Physics;
 
 public class Vector2D {
-    private double x, y;
+    private float x, y;
 
-    public Vector2D(double x, double y) {
+    public Vector2D(float x, float y) {
         this.x = x;
         this.y = y;
     }
 
-    public void set(double x, double y) {
+    public void set(float x, float y) {
         this.x = x;
         this.y = y;
     }
@@ -23,16 +23,16 @@ public class Vector2D {
         return new Vector2D(v1.x + v2.x, v1.y + v2.y);
     }
 
-    public static Vector2D add(Vector2D v1, double n) {
+    public static Vector2D add(Vector2D v1, float n) {
         return new Vector2D(v1.x + n, v1.y + n);
     }
 
-    public void add(double n) {
+    public void add(float n) {
         this.x += n;
         this.y += n;
     }
 
-    public void add(double x, double y) {
+    public void add(float x, float y) {
         this.x += x;
         this.y += y;
     }
@@ -47,16 +47,16 @@ public class Vector2D {
         return new Vector2D(v1.x - v2.x, v1.y - v2.y);
     }
 
-    public static Vector2D sub(Vector2D v1, double n) {
+    public static Vector2D sub(Vector2D v1, float n) {
         return new Vector2D(v1.x - n, v1.y - n);
     }
 
-    public void sub(double n) {
+    public void sub(float n) {
         this.x -= n;
         this.y -= n;
     }
 
-    public void sub(double x, double y) {
+    public void sub(float x, float y) {
         this.x -= x;
         this.y -= y;
     }
@@ -71,16 +71,16 @@ public class Vector2D {
         return new Vector2D(v1.x * v2.x, v1.y * v2.y);
     }
 
-    public static Vector2D mult(Vector2D v1, double n) {
+    public static Vector2D mult(Vector2D v1, float n) {
         return new Vector2D(v1.x * n, v1.y * n);
     }
 
-    public void mult(double n) {
+    public void mult(float n) {
         this.x *= n;
         this.y *= n;
     }
 
-    public void mult(double x, double y) {
+    public void mult(float x, float y) {
         this.x *= x;
         this.y *= y;
     }
@@ -95,16 +95,16 @@ public class Vector2D {
         return new Vector2D(v1.x / v2.x, v1.y / v2.y);
     }
 
-    public static Vector2D div(Vector2D v1, double n) {
+    public static Vector2D div(Vector2D v1, float n) {
         return new Vector2D(v1.x / n, v1.y / n);
     }
 
-    public void div(double n) {
+    public void div(float n) {
         this.x /= n;
         this.y /= n;
     }
 
-    public void div(double x, double y) {
+    public void div(float x, float y) {
         this.x /= x;
         this.y /= y;
     }
@@ -114,16 +114,16 @@ public class Vector2D {
         this.y /= v.y;
     }
 
-    public double mag() {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
+    public float mag() {
+        return (float) Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
     //Dot Product
-    public double dot(Vector2D v) {
+    public float dot(Vector2D v) {
         return this.x * v.x + this.y * v.y;
     }
 
-    public static double dot(Vector2D v1, Vector2D v2) {
+    public static float dot(Vector2D v1, Vector2D v2) {
         return v1.x * v2.x + v1.y * v2.y;
     }
 
@@ -131,15 +131,15 @@ public class Vector2D {
         return Vector2D.div(v, v.mag());
     }
 
-    public static double angleBetween(Vector2D v1, Vector2D v2) {
-        return Math.atan2(v2.y, v2.x) - Math.atan2(v1.y, v1.x);
+    public static float angleBetween(Vector2D v1, Vector2D v2) {
+        return (float) (Math.atan2(v2.y, v2.x) - Math.atan2(v1.y, v1.x));
     }
 
-    public double getX() {
+    public float getX() {
         return this.x;
     }
 
-    public double getY() {
+    public float getY() {
         return this.y;
     }
 

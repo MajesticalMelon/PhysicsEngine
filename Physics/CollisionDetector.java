@@ -8,15 +8,13 @@ public class CollisionDetector {
     Vector2D pocA = new Vector2D(0, 0);
     Vector2D pocB = new Vector2D(0, 0);
 
-    Vector2D contactPoint;
-
     public CollisionDetector(ArrayList<RigidBody> s) {
         bodies = s;
     }
     
     int partition(ArrayList<Vector2D> arr, int low, int high) 
     { 
-        double pivot = arr.get(high).getX();  
+        float pivot = arr.get(high).getX();  
         int i = (low-1); // index of smaller element 
         for (int j=low; j<high; j++) 
         { 
@@ -92,13 +90,13 @@ public class CollisionDetector {
     //Implementation of the Seperated Axis Theorem
     public boolean SAT(RigidBody a, RigidBody b) {
         Vector2D perpLine;
-        double dot;
+        float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
         //Guarantee that the first dot products are less than the min or greater than the max
-        Vector2D aMin = new Vector2D(Double.MAX_VALUE, 0);
-        Vector2D aMax = new Vector2D(-Double.MAX_VALUE + 10, 0);
-        Vector2D bMin = new Vector2D(Double.MAX_VALUE, 0);
-        Vector2D bMax = new Vector2D(-Double.MAX_VALUE + 10, 0);
+        Vector2D aMin = new Vector2D(Float.MAX_VALUE, 0);
+        Vector2D aMax = new Vector2D(-Float.MAX_VALUE + 10, 0);
+        Vector2D bMin = new Vector2D(Float.MAX_VALUE, 0);
+        Vector2D bMax = new Vector2D(-Float.MAX_VALUE + 10, 0);
 
         Vector2D aMaxPoint;
         Vector2D aMinPoint;
@@ -163,15 +161,15 @@ public class CollisionDetector {
         bMaxPoint = b.getPoints().get((int) bMax.getY());
         bMinPoint = b.getPoints().get((int) bMin.getY());
 
-        double distAMaxToB = Vector2D.sub(aMaxPoint, b.getPos()).mag();
-        double distBMaxToA = Vector2D.sub(bMaxPoint, a.getPos()).mag();
-        double distAMinToB = Vector2D.sub(aMinPoint, b.getPos()).mag();
-        double distBMinToA = Vector2D.sub(bMinPoint, a.getPos()).mag();
+        float distAMaxToB = Vector2D.sub(aMaxPoint, b.getPos()).mag();
+        float distBMaxToA = Vector2D.sub(bMaxPoint, a.getPos()).mag();
+        float distAMinToB = Vector2D.sub(aMinPoint, b.getPos()).mag();
+        float distBMinToA = Vector2D.sub(bMinPoint, a.getPos()).mag();
 
-        double radiusToA = Math.min(distAMaxToB, distAMinToB);
+        float radiusToA = Math.min(distAMaxToB, distAMinToB);
         pocB = new Vector2D(radiusToA, radiusToA);
 
-        double radiusToB = Math.min(distBMaxToA, distBMinToA);
+        float radiusToB = Math.min(distBMaxToA, distBMinToA);
         pocA = new Vector2D(radiusToB, radiusToB);
 
         //Return true if the for loop completes
