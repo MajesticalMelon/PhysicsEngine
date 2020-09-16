@@ -32,7 +32,7 @@ public class Canvas extends JPanel implements ActionListener {
         shapes.add(square);
         shapes.add(rectangle);
         //shapes.get(1).applyForce(new Vector2D(200, 0), new Vector2D(0, -100));
-        shapes.get(0).applyForce(new Vector2D(15, 2), new Vector2D(5, 0));
+        shapes.get(0).applyForce(new Vector2D(15, 0), new Vector2D(5, 0));
         //shapes.get(1).applyForce(new Vector2D(-100, 0), new Vector2D(0, 20));
         CD = new CollisionDetector(this.shapes);
         gameTimer.start();

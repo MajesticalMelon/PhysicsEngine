@@ -79,6 +79,7 @@ public class CollisionDetector {
 
                 if (collision) {
                     //moveOut(a, b);
+                    separate(a, b);
                     a.collide(b, pocA, pocB);
                 }
             } else {
@@ -174,5 +175,23 @@ public class CollisionDetector {
 
         //Return true if the for loop completes
         return true;
+    }
+
+    private void separate(RigidBody a, RigidBody b) {
+        Vector2D overlap;
+
+        if (a.getPos().getX() < b.getPos().getX()) {
+            overlap = Vector2D.sub(a.getMaxPoint(), b.getMinPoint());
+        } else {
+            overlap = Vector2D.sub(b.getMaxPoint(), a.getMinPoint());
+        }
+
+        Vector2D normVelA = Vector2D.norm(new Vector2D(Math.abs(a.getLinearVelocity().getX()), Math.abs(a.getLinearVelocity().getX())));
+        Vector2D normVelB = Vector2D.norm(new Vector2D(Math.abs(b.getLinearVelocity().getX()), Math.abs(b.getLinearVelocity().getX())));
+
+        normVelA.mult(-1);
+        a.addPos(Vector2D.mult(overlap, normVelA)); 
+        b.addPos(Vector2D.mult(overlap, normVelB));
+
     }
 }

@@ -128,7 +128,11 @@ public class Vector2D {
     }
 
     public static Vector2D norm(Vector2D v) {
-        return Vector2D.div(v, v.mag());
+        if (v.mag() == 0f) {
+            return new Vector2D(0, 0);
+        } else {
+            return Vector2D.div(v, v.mag());
+        }
     }
 
     public static float angleBetween(Vector2D v1, Vector2D v2) {
