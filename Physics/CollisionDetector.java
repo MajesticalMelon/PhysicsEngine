@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
+    Vector2D pocA = new Vector2D(0, 0);
+    Vector2D pocB = new Vector2D(0, 0);
 
     Vector2D contactPoint;
 
@@ -74,13 +76,15 @@ public class CollisionDetector {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
-                //TODO: Calculate radius that force is applied
-                if (SAT(a, b)) {
+                boolean collision = SAT(a, b);
+                System.out.println(collision);
+
+                if (collision) {
                     //moveOut(a, b);
-                    a.collide(b, a.getMaxPoint());
+                    a.collide(b, pocA, pocB);
                 }
             } else {
-                i += 2;
+                i+=2;
             }
         }
     }
@@ -100,8 +104,8 @@ public class CollisionDetector {
         //Calculate vectors perpendicular to each polygon's edges
         for (int i = 0; i < a.getEdges().size(); i++) {
             perpLine = new Vector2D(
-                -a.edges.get(i).getY(), 
-                a.edges.get(i).getX()
+                -a.getEdges().get(i).getY(), 
+                a.getEdges().get(i).getX()
             );
 
             perpStack.add(Vector2D.norm(perpLine));
@@ -109,14 +113,13 @@ public class CollisionDetector {
 
         for (int i = 0; i < b.getEdges().size(); i++) {
             perpLine = new Vector2D(
-                -b.edges.get(i).getY(), 
-                b.edges.get(i).getX()
+                -b.getEdges().get(i).getY(), 
+                b.getEdges().get(i).getX()
             );
 
             perpStack.add(Vector2D.norm(perpLine));
         }
 
-        
         for (int i = 0; i < perpStack.size(); i++) {
             //Calculate dot products between polygon's points and their perpLines
             //Describes the location of the polyogn's points along an infinite perpendicular line
@@ -148,33 +151,24 @@ public class CollisionDetector {
                 return false;
             }
         }
+
+        aMaxPoint = a.getPoints().get((int) aMax.getY());
+        aMinPoint = a.getPoints().get((int) aMin.getY());
+        bMaxPoint = b.getPoints().get((int) bMax.getY());
+        bMinPoint = b.getPoints().get((int) bMin.getY());
+
+        double distAMaxToB = Vector2D.sub(aMaxPoint, b.getPos()).mag();
+        double distBMaxToA = Vector2D.sub(bMaxPoint, a.getPos()).mag();
+        double distAMinToB = Vector2D.sub(aMinPoint, b.getPos()).mag();
+        double distBMinToA = Vector2D.sub(bMinPoint, a.getPos()).mag();
+
+        double radiusToA = Math.min(distAMaxToB, distAMinToB);
+        pocB = new Vector2D(radiusToA, radiusToA);
+
+        double radiusToB = Math.min(distBMaxToA, distBMinToA);
+        pocA = new Vector2D(radiusToB, radiusToB);
+
         //Return true if the for loop completes
         return true;
-    }
-
-    private void moveOut(RigidBody a, RigidBody b) {
-        a.setAngularVelocity(0);
-        b.setAngularVelocity(0);
-
-        Vector2D overlap = Vector2D.sub(a.getMaxPoint(), b.getMinPoint());
-        
-        Vector2D velTotal = Vector2D.add(Vector2D.add(a.getLinearVelocity(), 0.001), Vector2D.add(b.getLinearVelocity(), 0.001));
-
-        Vector2D velRatioA = Vector2D.div(a.getLinearVelocity(), velTotal);
-        Vector2D velRatioB = Vector2D.div(b.getLinearVelocity(), velTotal);
-
-        
-
-        a.setLinearVelocity(new Vector2D(0, 0));
-        b.setLinearVelocity(new Vector2D(0, 0));
-
-        Vector2D aMove = Vector2D.mult(overlap, velRatioA);
-        Vector2D bMove = Vector2D.mult(overlap, velRatioB);
-
-        aMove.mult(-1);
-        bMove.mult(-1);
-
-        a.addPos(aMove);
-        b.addPos(bMove);
     }
 }
