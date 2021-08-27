@@ -57,10 +57,10 @@ public class Canvas extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         delay++;
         if (delay > 100) {
+            CD.detectCollision(this.shapes);
             for (RigidBody body : shapes) {
                 body.update();
             }
-            CD.detectCollision(this.shapes);
         }
         repaint();
     }
