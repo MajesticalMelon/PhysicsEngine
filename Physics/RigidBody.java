@@ -87,7 +87,7 @@ public class RigidBody {
         force.div(this.mass);
         this.linAcc.add(force);
 
-        System.out.println("x");
+        //System.out.println("x");
     }
 
 

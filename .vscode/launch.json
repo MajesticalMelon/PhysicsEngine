@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch Run",
+            "request": "launch",
+            "mainClass": "Display.Run",
+            "projectName": "PhysicsEngine_379b334"
+        },
+        {
+            "type": "java",
             "name": "Debug (Launch) - Current File",
             "request": "launch",
             "mainClass": "${file}"

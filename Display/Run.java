@@ -11,7 +11,7 @@ public class Run extends JFrame {
         add(new Canvas());
         pack();
 
-        setTitle("RayCasting");
+        setTitle("Physics");
         setSize(1000, 1000);
     }
 

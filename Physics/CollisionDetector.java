@@ -90,11 +90,12 @@ public class CollisionDetector {
         Vector2D perpLine;
         double dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
+
         //Guarantee that the first dot products are less than the min or greater than the max
-        double aMin = 9999999999999999d;
-        double aMax = -9999999999999999d;
-        double bMin = 9999999999999999d;
-        double bMax = -9999999999999999d;
+        double aMin = Double.MAX_VALUE;
+        double aMax = Double.MIN_VALUE;
+        double bMin = Double.MAX_VALUE;
+        double bMax = Double.MIN_VALUE;
 
         //Calculate vectors perpendicular to each polygon's edges
         for (int i = 0; i < a.getEdges().size(); i++) {
@@ -103,7 +104,7 @@ public class CollisionDetector {
                 a.edges.get(i).getX()
             );
 
-            perpStack.add(perpLine);
+            perpStack.add(Vector2D.norm(perpLine));
         }
 
         for (int i = 0; i < b.getEdges().size(); i++) {
@@ -112,7 +113,7 @@ public class CollisionDetector {
                 b.edges.get(i).getX()
             );
 
-            perpStack.add(perpLine);
+            perpStack.add(Vector2D.norm(perpLine));
         }
 
         
@@ -120,32 +121,28 @@ public class CollisionDetector {
             //Calculate dot products between polygon's points and their perpLines
             //Describes the location of the polyogn's points along an infinite perpendicular line
             for (int j = 0; j < a.getPoints().size(); j++) {
-                dot = Vector2D.dot(a.getPoints().get(j), perpStack.get(i));
-
-                if (dot > aMax) {
-                    aMax = dot;
-                }
+                dot = Vector2D.dot(perpStack.get(i), a.getPoints().get(j));
 
                 if (dot < aMin) {
                     aMin = dot;
+                } else if (dot > aMax) {
+                    aMax = dot;
                 }
             }
 
             for (int j = 0; j < a.getPoints().size(); j++) {
-                dot = Vector2D.dot(b.getPoints().get(j), perpStack.get(i));
-
-                if (dot > bMax) {
-                    bMax = dot;
-                }
+                dot = Vector2D.dot(perpStack.get(i), b.getPoints().get(j));
 
                 if (dot < bMin) {
                     bMin = dot;
+                } else if (dot > bMax) {
+                    bMax = dot;
                 }
             }
 
             //Check if bounds of dot products for each polygon intersect
             //Continue to check until out of points or until the condition is not met
-            if ((aMin < bMax && aMin > bMin) || (bMin < aMax && bMin > aMin)) {
+            if ((aMin < bMax && aMin > bMin) || (aMax > bMin && aMax < bMax)) {
                 continue;
             } else {
                 return false;
