@@ -75,14 +75,12 @@ public class CollisionDetector {
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
                 boolean collision = SAT(a, b);
-                System.out.println(collision);
 
                 if (collision) {
-                    //moveOut(a, b);
+                    // a.setLinearVelocity(new Vector2D(0, 0));
+                    // b.setLinearVelocity(new Vector2D(0, 0));
                     a.collide(b, pocA, pocB);
                 }
-            } else {
-                i+=2;
             }
         }
     }
@@ -173,5 +171,32 @@ public class CollisionDetector {
 
         //Return true if the for loop completes
         return true;
+    }
+
+    private void separate(RigidBody a, RigidBody b) {
+        Vector2D overlap;
+        
+        // Get the x overlap
+        if (a.getPos().getX() < b.getPos().getX()) {
+            overlap = Vector2D.sub(new Vector2D(a.getMaxX(), 0), new Vector2D(b.getMinX(), 0));
+        } else {
+            overlap = Vector2D.sub(new Vector2D(b.getMaxX(), 0), new Vector2D(a.getMinX(), 0));
+        }
+
+        if (a.getPos().getY() < b.getPos().getY()) {
+            overlap = Vector2D.sub(new Vector2D(overlap.getX(), a.getMaxY()), new Vector2D(0, b.getMinY()));
+        } else {
+            overlap = Vector2D.sub(new Vector2D(overlap.getX(), b.getMaxY()), new Vector2D(0, a.getMinY()));
+        }
+
+        Vector2D normVelA = Vector2D.norm(new Vector2D(Math.abs(a.getLinearVelocity().getX()), Math.abs(a.getLinearVelocity().getY())));
+        Vector2D normVelB = Vector2D.norm(new Vector2D(Math.abs(b.getLinearVelocity().getX()), Math.abs(b.getLinearVelocity().getY())));
+
+        normVelA.mult(1.0001f);
+        normVelB.mult(1.0001f);
+
+        normVelA.mult(-1);
+        a.addPos(Vector2D.mult(overlap, normVelA)); 
+        b.addPos(Vector2D.mult(overlap, normVelB));
     }
 }
