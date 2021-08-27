@@ -96,10 +96,10 @@ public class CollisionDetector {
         ArrayList<Vector2D> perpStack = new ArrayList<>();
 
         //Guarantee that the first dot products are less than the min or greater than the max
-        double aMin = Double.MAX_VALUE;
-        double aMax = Double.MIN_VALUE;
-        double bMin = Double.MAX_VALUE;
-        double bMax = Double.MIN_VALUE;
+        Vector2D aMin = new Vector2D(Double.MAX_VALUE, 0);
+        Vector2D aMax = new Vector2D(Double.MIN_VALUE, 0);
+        Vector2D bMin = new Vector2D(Double.MAX_VALUE, 0);
+        Vector2D bMax = new Vector2D(Double.MIN_VALUE, 0);
 
         //Calculate vectors perpendicular to each polygon's edges
         for (int i = 0; i < a.getEdges().size(); i++) {
@@ -126,31 +126,36 @@ public class CollisionDetector {
             for (int j = 0; j < a.getPoints().size(); j++) {
                 dot = Vector2D.dot(perpStack.get(i), a.getPoints().get(j));
 
-                if (dot < aMin) {
-                    aMin = dot;
-                } else if (dot > aMax) {
-                    aMax = dot;
+                if (dot < aMin.getX()) {
+                    aMin.set(dot, j);
+                } else if (dot > aMax.getX()) {
+                    aMax.set(dot, j);
                 }
             }
 
             for (int j = 0; j < a.getPoints().size(); j++) {
                 dot = Vector2D.dot(perpStack.get(i), b.getPoints().get(j));
 
-                if (dot < bMin) {
-                    bMin = dot;
-                } else if (dot > bMax) {
-                    bMax = dot;
+                if (dot < bMin.getX()) {
+                    bMin.set(dot, j);
+                } else if (dot > bMax.getX()) {
+                    bMax.set(dot, j);
                 }
             }
 
             //Check if bounds of dot products for each polygon intersect
             //Continue to check until out of points or until the condition is not met
-            if ((aMin < bMax && aMin > bMin) || (aMax > bMin && aMax < bMax)) {
+            if ((aMin.getX() < bMax.getX() && aMin.getX() > bMin.getX()) || (aMax.getX() > bMin.getX() && aMax.getX() < bMax.getX())) {
                 continue;
             } else {
                 return false;
             }
         }
+
+        Vector2D aMaxPoint;
+        Vector2D aMinPoint;
+        Vector2D bMaxPoint;
+        Vector2D bMinPoint;
 
         aMaxPoint = a.getPoints().get((int) aMax.getY());
         aMinPoint = a.getPoints().get((int) aMin.getY());
