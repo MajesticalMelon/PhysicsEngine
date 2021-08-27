@@ -83,7 +83,6 @@ public class RigidBody {
         this.linAcc.add(force);
     }
 
-
     public void collide(RigidBody j, Vector2D pA, Vector2D pB) {
         //Calculate force form this rigidbody
         Vector2D jMomentum = Vector2D.mult(j.getLinearVelocity(), j.getMass());
@@ -133,9 +132,10 @@ public class RigidBody {
     }
 
     private void calculateEdges() {
-        for (int i = 0; i < points.size(); i++) {
-            edges.get(i).set(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
+        for (int i = 0; i < points.size() - 1; i++) {
+            edges.get(i).set(Vector2D.sub(points.get(i), points.get((i + 1))));
         }
+        edges.get(points.size() - 1).set(Vector2D.sub(points.get(points.size() - 1), points.get(0)));
     }
 
     public Vector2D getPos() {

@@ -31,9 +31,9 @@ public class Canvas extends JPanel implements ActionListener {
 
         shapes.add(square);
         shapes.add(rectangle);
-        //shapes.get(1).applyForce(new Vector2D(200, 0), new Vector2D(0, -100));
-        shapes.get(0).applyForce(new Vector2D(15, 0), new Vector2D(5, 0));
-        //shapes.get(1).applyForce(new Vector2D(-100, 0), new Vector2D(0, 20));
+
+        shapes.get(0).applyForce(new Vector2D(15, 0), new Vector2D(5, 2));
+        
         CD = new CollisionDetector(this.shapes);
         gameTimer.start();
     }
@@ -42,7 +42,6 @@ public class Canvas extends JPanel implements ActionListener {
     public void paint(Graphics g) {
         super.paint(g);
         Graphics2D g2 = (Graphics2D) g;
-        //g2.translate(0, 0);
         this.draw(g2);
     }
 
@@ -50,6 +49,10 @@ public class Canvas extends JPanel implements ActionListener {
         for (RigidBody body : shapes) {
             g2.setColor(Color.WHITE);
             g2.draw(body.getPolygon());
+
+            for (Vector2D point : body.getPoints()) {
+                g2.drawRect((int)point.getX(), (int)point.getY(), 2, 2);
+            }
         }
     }
 
@@ -57,12 +60,13 @@ public class Canvas extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         delay++;
         if (delay > 100) {
-            CD.detectCollision(this.shapes);
+            
             for (RigidBody body : shapes) {
                 body.update();
             }
+
+            CD.detectCollision(this.shapes);
         }
-        CD.detectCollision(this.shapes);
 
         repaint();
     }
