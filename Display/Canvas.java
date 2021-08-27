@@ -24,7 +24,7 @@ public class Canvas extends JPanel implements ActionListener {
     CollisionDetector CD;
 
     RigidBody square = new RigidBody(100, 350, 50, 50, 10);
-    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 1);
+    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 5);
 
     public Canvas() {
         setBackground(new Color(50, 50, 50));
@@ -62,6 +62,8 @@ public class Canvas extends JPanel implements ActionListener {
             }
             CD.detectCollision(this.shapes);
         }
+        CD.detectCollision(this.shapes);
+
         repaint();
     }
 }

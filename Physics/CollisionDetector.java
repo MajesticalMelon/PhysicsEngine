@@ -92,6 +92,7 @@ public class CollisionDetector {
         Vector2D perpLine;
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
+
         //Guarantee that the first dot products are less than the min or greater than the max
         Vector2D aMin = new Vector2D(Float.MAX_VALUE, 0);
         Vector2D aMax = new Vector2D(-Float.MAX_VALUE + 10, 0);
@@ -110,7 +111,7 @@ public class CollisionDetector {
                 a.getEdges().get(i).getX()
             );
 
-            perpStack.add(perpLine);
+            perpStack.add(Vector2D.norm(perpLine));
         }
 
         for (int i = 0; i < b.getEdges().size(); i++) {
@@ -119,43 +120,41 @@ public class CollisionDetector {
                 b.getEdges().get(i).getX()
             );
 
-            perpStack.add(perpLine);
+            perpStack.add(Vector2D.norm(perpLine));
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
             //Calculate dot products between polygon's points and their perpLines
             //Describes the location of the polyogn's points along an infinite perpendicular line
             for (int j = 0; j < a.getPoints().size(); j++) {
-                dot = Vector2D.dot(a.getPoints().get(j), perpStack.get(i));
-
-                if (dot > aMax.getX()) {
-                    aMax.set(dot , j);
-                }
+                dot = Vector2D.dot(perpStack.get(i), a.getPoints().get(j));
 
                 if (dot < aMin.getX()) {
                     aMin.set(dot, j);
+                } else if (dot > aMax.getX()) {
+                    aMax.set(dot, j);
                 }
             }
 
-            for (int j = 0; j < b.getPoints().size(); j++) {
-                dot = Vector2D.dot(b.getPoints().get(j), perpStack.get(i));
-
-                if (dot > bMax.getX()) {
-                    bMax.set(dot, j);
-                }
+            for (int j = 0; j < a.getPoints().size(); j++) {
+                dot = Vector2D.dot(perpStack.get(i), b.getPoints().get(j));
 
                 if (dot < bMin.getX()) {
                     bMin.set(dot, j);
+                } else if (dot > bMax.getX()) {
+                    bMax.set(dot, j);
                 }
             }
 
             //Check if bounds of dot products for each polygon intersect
             //Continue to check until out of points or until the condition is not met
-            if (!((aMin.getX() < bMax.getX() && aMin.getX() > bMin.getX()) || (bMin.getX() < aMax.getX() && bMin.getX() > aMin.getX()))) {
+            if ((aMin.getX() < bMax.getX() && aMin.getX() > bMin.getX()) || (aMax.getX() > bMin.getX() && aMax.getX() < bMax.getX())) {
+                continue;
+            } else {
                 return false;
             }
         }
-
+        
         aMaxPoint = a.getPoints().get((int) aMax.getY());
         aMinPoint = a.getPoints().get((int) aMin.getY());
         bMaxPoint = b.getPoints().get((int) bMax.getY());
