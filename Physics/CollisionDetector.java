@@ -93,7 +93,12 @@ public class CollisionDetector {
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
 
+        float overlap = Float.MAX_VALUE;
+        Vector2D smallestAxis = new Vector2D(0, 0);
+
         //Calculate vectors perpendicular to each polygon's edges
+
+        // Get the normals for a
         for (int i = 0; i < a.getEdges().size(); i++) {
             perpLine = new Vector2D(
                 -a.getEdges().get(i).getY(), 
@@ -103,6 +108,7 @@ public class CollisionDetector {
             perpStack.add(Vector2D.norm(perpLine));
         }
 
+        // Get the normals for b
         for (int i = 0; i < b.getEdges().size(); i++) {
             perpLine = new Vector2D(
                 -b.getEdges().get(i).getY(), 
@@ -113,15 +119,15 @@ public class CollisionDetector {
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
-
             //Guarantee that the first dot products are less than the min/greater than the max
             float aMin = Float.POSITIVE_INFINITY;
             float aMax = Float.NEGATIVE_INFINITY;
             float bMin = Float.POSITIVE_INFINITY;
             float bMax = Float.NEGATIVE_INFINITY;
 
-            //Calculate dot products between polygon's points and their perpLines
-            //Describes the location of the polyogn's points along an infinite perpendicular line
+            // Calculate dot products between polygon's points and their perpLines
+            // Describes the location of the polyogn's points along an infinite perpendicular line
+            //// Projects each polygon
             for (int j = 0; j < a.getPoints().size(); j++) {
                 dot = Vector2D.dot(perpStack.get(i), a.getPoints().get(j));
 
@@ -152,14 +158,34 @@ public class CollisionDetector {
             || (aMax > bMin && aMax < bMax)
             || (bMin < aMax && bMin > aMin)
             || (bMax < aMax && bMax > aMin)) {
+                // Get the minimum amount of overlap in order to calculate
+                // the min translation vec
+                float currentOverlap = Math.min(aMax - bMin, bMax - aMin);
+                
+                if (currentOverlap < overlap) {
+                    overlap = currentOverlap;
+                    smallestAxis = perpStack.get(i); // Assign the direction of translation
+                }
+
                 continue;
             } else {
                 return false;
             }
         }
 
-        pocB = new Vector2D(0, 0);
-        pocA = new Vector2D(0, 0);
+        // Calculate the Minimum Translation Vector
+        Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
+        
+        // Perform the translation
+        a.addPos(mtv);
+
+        // Calculate pseudo contact points relative to the body's centers
+        Vector2D distanceBetween = Vector2D.sub(b.getPos(), a.getPos());
+
+        // Point of contact will be halfway along the vector that points
+        // from the center of a to the center of b
+        pocB = Vector2D.div(distanceBetween, -2);
+        pocA = Vector2D.div(distanceBetween, 2);
 
         //Return true if the for loop completes
         return true;
