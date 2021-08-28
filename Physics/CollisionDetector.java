@@ -5,8 +5,6 @@ import java.util.ArrayList;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
-    Vector2D pocA = new Vector2D(0, 0);
-    Vector2D pocB = new Vector2D(0, 0);
 
     public CollisionDetector(ArrayList<RigidBody> s) {
         bodies = s;
@@ -78,7 +76,7 @@ public class CollisionDetector {
                 boolean collision = SAT(a, b);
 
                 if (collision) {
-                    a.collide(b, pocA, pocB);
+                    a.collide(b);
                 }
             }
         }
@@ -175,14 +173,6 @@ public class CollisionDetector {
         
         // Perform the translation
         a.addPos(mtv);
-        
-        // Calculate pseudo contact points relative to the body's centers
-        Vector2D distanceBetween = Vector2D.sub(b.getPos(), a.getPos());
-
-        // Point of contact will be halfway along the vector that points
-        // from the center of a to the center of b
-        pocB = Vector2D.div(distanceBetween, -2);
-        pocA = Vector2D.div(distanceBetween, 2);
 
         //Return true if the for loop completes
         return true;
