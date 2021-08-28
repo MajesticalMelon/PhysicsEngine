@@ -76,11 +76,8 @@ public class CollisionDetector {
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
                 boolean collision = SAT(a, b);
-                System.out.println(collision);
 
                 if (collision) {
-                    // a.setLinearVelocity(new Vector2D(0, 0));
-                    // b.setLinearVelocity(new Vector2D(0, 0));
                     a.collide(b, pocA, pocB);
                 }
             }
@@ -178,7 +175,7 @@ public class CollisionDetector {
         
         // Perform the translation
         a.addPos(mtv);
-
+        
         // Calculate pseudo contact points relative to the body's centers
         Vector2D distanceBetween = Vector2D.sub(b.getPos(), a.getPos());
 
