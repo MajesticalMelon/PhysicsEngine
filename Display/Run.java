@@ -20,6 +20,7 @@ public class Run extends JFrame {
             public void run() {
                 JFrame f = new Run();
                 f.setVisible(true);
+                f.setDefaultCloseOperation(EXIT_ON_CLOSE);
             }
         });
     }

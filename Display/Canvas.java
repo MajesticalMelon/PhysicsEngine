@@ -23,8 +23,8 @@ public class Canvas extends JPanel implements ActionListener {
 
     CollisionDetector CD;
 
-    RigidBody square = new RigidBody(100, 350, 50, 50, 10);
-    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 5);
+    RigidBody square = new RigidBody(100, 400, 50, 50, 15);
+    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 10);
 
     public Canvas() {
         setBackground(new Color(50, 50, 50));
@@ -33,6 +33,7 @@ public class Canvas extends JPanel implements ActionListener {
         shapes.add(rectangle);
 
         shapes.get(0).applyForce(new Vector2D(15, 0), new Vector2D(5, 2));
+        shapes.get(1).applyForce(new Vector2D(-15, 0), new Vector2D(5, 2));
         
         CD = new CollisionDetector(this.shapes);
         gameTimer.start();
@@ -49,10 +50,6 @@ public class Canvas extends JPanel implements ActionListener {
         for (RigidBody body : shapes) {
             g2.setColor(Color.WHITE);
             g2.draw(body.getPolygon());
-
-            for (Vector2D point : body.getPoints()) {
-                g2.drawRect((int)point.getX(), (int)point.getY(), 2, 2);
-            }
         }
     }
 
