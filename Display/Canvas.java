@@ -13,7 +13,7 @@ import Physics.RigidBody;
 import Physics.Vector2D;
 import Physics.CollisionDetector;
 
-public class Canvas extends JPanel implements ActionListener {
+public class Canvas extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
 
     public ArrayList<RigidBody> shapes = new ArrayList<>();
@@ -23,17 +23,23 @@ public class Canvas extends JPanel implements ActionListener {
 
     CollisionDetector CD;
 
-    RigidBody square = new RigidBody(100, 400, 50, 50, 1);
-    RigidBody rectangle = new RigidBody(320, 350, 100, 200, 20);
+    RigidBody square = new RigidBody(300, 400, 50, 50, 5);
+    RigidBody rectangle = new RigidBody(420, 350, 100, 200, 10);
+    RigidBody box = new RigidBody(150, 500, 236, 185, Integer.MAX_VALUE);
+
+    RigidBody player = new RigidBody(0, 0, 25, 25, 50);
 
     public Canvas() {
         setBackground(new Color(50, 50, 50));
 
         shapes.add(square);
         shapes.add(rectangle);
+        shapes.add(box);
+        shapes.add(player);
 
-        //shapes.get(0).applyForce(new Vector2D(4, 0), new Vector2D(5, 2));
-        shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
+        //shapes.get(0).applyForce(new Vector2D(100, 0), new Vector2D(5, 2));
+        shapes.get(1).applyForce(new Vector2D(5, 0), new Vector2D(0, 100));
+        shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, -100));
         
         CD = new CollisionDetector(this.shapes);
         gameTimer.start();
@@ -54,17 +60,31 @@ public class Canvas extends JPanel implements ActionListener {
     }
 
     @Override
+    public void keyPressed(KeyEvent e) {
+        int keyCode = e.getKeyCode();
+
+        if (keyCode == KeyEvent.VK_W) {
+            player.setLinearAcceleration(new Vector2D(0, 1f));
+        }
+    }
+
+    @Override
     public void actionPerformed(ActionEvent e) {
         delay++;
         if (delay > 100) {
-            
+            CD.detectCollision(this.shapes);
+
             for (RigidBody body : shapes) {
                 body.update();
             }
-
-            CD.detectCollision(this.shapes);
         }
 
         repaint();
     }
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
+
+    @Override
+    public void keyReleased(KeyEvent e) {}
 }

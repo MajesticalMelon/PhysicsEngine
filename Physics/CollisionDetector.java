@@ -170,9 +170,16 @@ public class CollisionDetector {
 
         // Calculate the Minimum Translation Vector
         Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
-        
+        //mtv.div(2);
+        //a.addPos(mtv);
+
         // Perform the translation
-        a.addPos(mtv);
+        if (a.getMass() <= b.getMass()) {
+            a.addPos(mtv);
+        } else {
+            mtv.mult(-1);
+            b.addPos(mtv);
+        }
 
         //Return true if the for loop completes
         return true;

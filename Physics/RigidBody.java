@@ -83,53 +83,48 @@ public class RigidBody {
         this.linAcc.add(force);
     }
 
-    // TODO: Change momentumTransfer to account for when this body has 0 momentum
     public void collide(RigidBody j) {
-        // Linear Momentum //
+        conserveAngularMomentum(j);
+        conserveLinearMomentum(j);
+    }
 
-        // Calculate current momenta
-        Vector2D thisMomentum = Vector2D.mult(this.getLinearVelocity(), this.getMass());
-        Vector2D jBodyMomentum = Vector2D.mult(j.getLinearVelocity(), j.getMass());
-
-        // Determine the amount of momentumTransfer based on mass
-        momentumTransfer = this.getMass() / (this.getMass() + j.getMass());
-
-        // Scale this body's linear velocity by momentum transfer
-        // and calculate the momentum after that scaing
-        Vector2D thisLinVel = Vector2D.mult(this.getLinearVelocity(), momentumTransfer);
-        Vector2D thisNewMomentum = Vector2D.mult(thisLinVel, this.getMass());
-
-        // Get the combined initial momentums
-        Vector2D combinedMomentum = Vector2D.add(thisMomentum, jBodyMomentum);
-
-        // Calculate j's new linear velocity
-        Vector2D jBodyLinVel = Vector2D.sub(combinedMomentum, thisNewMomentum);
-        jBodyLinVel.div(j.getMass());
-
-        // Set the new linear velocities
-        this.setLinearVelocity(thisLinVel);
-        j.setLinearVelocity(jBodyLinVel);
-
+    private void conserveAngularMomentum(RigidBody j) {
         // Angular Momentum //
 
-        // Calculate angulare momenta
-        float thisAngularMomentum = this.getMoment() * this.getAngularVelocity();
-        float jBodyAngularMomentum = j.getMoment() * j.getAngularVelocity();
+        // Do it like the linear momentum (no need to be exact)
+        float initialAngularMomentum = this.getAngularVelocity() * this.getMoment() + j.getAngularVelocity() * j.getMoment();
 
-        // Scale this body's angular velocity by momentum transfer
-        // and calculate the momentum after that scaing
-        float thisAngVel = this.getAngularVelocity() * momentumTransfer;
-        float thisNewAngMomentum = this.getMoment() * thisAngVel;
+        float totalMoment = this.getMoment() + j.getMoment();
 
-        // Calculate combination of initial momenta
-        float combinedAngMomentum = thisAngularMomentum + jBodyAngularMomentum;
+        float velocityDifference = this.getAngularVelocity() - j.getAngularVelocity();
+        velocityDifference *= this.getMoment();
+        velocityDifference += initialAngularMomentum;
 
-        // Calculate j's new angular velocity
-        float jBodyAngVel = (combinedAngMomentum - thisNewAngMomentum) / j.getMoment();
+        float jBodyAngVel = velocityDifference / totalMoment;
+        float thisAngVel = j.getAngularVelocity() + jBodyAngVel - this.getAngularVelocity();
 
-        // Assign new angular velocities
         this.setAngularVelocity(thisAngVel);
         j.setAngularVelocity(jBodyAngVel);
+    }
+
+    private void conserveLinearMomentum(RigidBody j) {
+        Vector2D initalLinearMomentum = Vector2D.add(
+            Vector2D.mult(this.getLinearVelocity(), this.getMass()), 
+            Vector2D.mult(j.getLinearVelocity(), j.getMass())
+        );
+        
+        float totalMass = this.getMass() + j.getMass();
+
+        Vector2D velocityDifference = Vector2D.sub(this.getLinearVelocity(), j.getLinearVelocity());
+        velocityDifference.mult(this.getMass());
+        velocityDifference.add(initalLinearMomentum);
+
+        Vector2D jBodyLinVel = Vector2D.div(velocityDifference, totalMass);
+
+        Vector2D thisLinVel = Vector2D.sub(Vector2D.add(j.getLinearVelocity(), jBodyLinVel), this.getLinearVelocity());
+
+        this.setLinearVelocity(thisLinVel);
+        j.setLinearVelocity(jBodyLinVel);
     }
 
     private void movePoints() {

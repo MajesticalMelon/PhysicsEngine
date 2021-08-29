@@ -8,7 +8,9 @@ public class Run extends JFrame {
     private static final long serialVersionUID = 1L;
 
     Run() {
-        add(new Canvas());
+        Canvas canvas = new Canvas();
+        addKeyListener(canvas);
+        add(canvas);
         pack();
 
         setTitle("Physics");
