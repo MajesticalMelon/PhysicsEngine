@@ -83,9 +83,28 @@ public class RigidBody {
         this.linAcc.add(force);
     }
 
-    public void collide(RigidBody j) {
-        conserveAngularMomentum(j);
-        conserveLinearMomentum(j);
+    public void collide(RigidBody j, Vector2D pointOfCollision) {
+        Vector2D initalLinearMomentum = Vector2D.add(
+            Vector2D.mult(this.getLinearVelocity(), this.getMass()), 
+            Vector2D.mult(j.getLinearVelocity(), j.getMass())
+        );
+        
+        float totalMass = this.getMass() + j.getMass();
+
+        Vector2D velocityDifference = Vector2D.sub(this.getLinearVelocity(), j.getLinearVelocity());
+        velocityDifference.mult(this.getMass());
+        velocityDifference.add(initalLinearMomentum);
+
+        Vector2D jBodyLinVel = Vector2D.div(velocityDifference, totalMass);
+
+        Vector2D thisLinVel = Vector2D.sub(Vector2D.add(j.getLinearVelocity(), jBodyLinVel), this.getLinearVelocity());
+
+        Vector2D thisMomentumChange = Vector2D.mult(Vector2D.sub(thisLinVel, this.getLinearVelocity()), this.getMass());
+
+        Vector2D force = Vector2D.div(thisMomentumChange, 1000f / 144f);
+
+        this.applyForce(force, Vector2D.sub(pointOfCollision, this.getPos()));
+        j.applyForce(Vector2D.mult(force, -1), Vector2D.sub(pointOfCollision, j.getPos()));
     }
 
     private void conserveAngularMomentum(RigidBody j) {

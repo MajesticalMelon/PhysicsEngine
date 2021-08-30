@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
+    public Vector2D collisionPoint = new Vector2D(0, 0); // default
 
     public CollisionDetector(ArrayList<RigidBody> s) {
         bodies = s;
@@ -76,7 +77,7 @@ public class CollisionDetector {
                 boolean collision = SAT(a, b);
 
                 if (collision) {
-                    a.collide(b);
+                    a.collide(b, collisionPoint);
                 }
             }
         }
@@ -168,18 +169,44 @@ public class CollisionDetector {
             }
         }
 
+        Vector2D aToB = Vector2D.sub(b.getPos(), a.getPos());
+        Vector2D bToA = Vector2D.sub(a.getPos(), b.getPos());
+
+        float smallestAngle = Float.POSITIVE_INFINITY;
+
+        // Find a collision point
+        for (Vector2D point : a.getPoints()) {
+            float testAngle = Math.abs(Vector2D.angleBetween(aToB, point));
+
+            if (testAngle > Math.PI) {
+                testAngle -= Math.PI;
+            }
+
+            if (testAngle < smallestAngle) {
+                smallestAngle = testAngle;
+                collisionPoint = point;
+            }
+        }
+
+        // Find a collision point
+        for (Vector2D point : b.getPoints()) {
+            float testAngle = Math.abs(Vector2D.angleBetween(bToA, point));
+
+            if (testAngle > Math.PI) {
+                testAngle -= Math.PI;
+            }
+
+            if (testAngle < smallestAngle) {
+                smallestAngle = testAngle;
+                collisionPoint = point;
+            }
+        }
+
         // Calculate the Minimum Translation Vector
         Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
-        //mtv.div(2);
-        //a.addPos(mtv);
 
         // Perform the translation
-        if (a.getMass() <= b.getMass()) {
-            a.addPos(mtv);
-        } else {
-            mtv.mult(-1);
-            b.addPos(mtv);
-        }
+        a.addPos(mtv);
 
         //Return true if the for loop completes
         return true;
