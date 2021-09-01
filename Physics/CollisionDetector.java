@@ -74,17 +74,14 @@ public class CollisionDetector {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
-                boolean collision = SAT(a, b);
-
-                if (collision) {
-                    a.collide(b, collisionPoint);
-                }
+                // Detect and resolve collisions
+                SAT(a, b);
             }
         }
     }
 
     // Implementation of the Seperated Axis Theorem
-    public boolean SAT(RigidBody a, RigidBody b) {
+    public void SAT(RigidBody a, RigidBody b) {
         Vector2D perpLine;
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
@@ -165,7 +162,7 @@ public class CollisionDetector {
 
                 continue;
             } else {
-                return false;
+                return;
             }
         }
 
@@ -204,11 +201,11 @@ public class CollisionDetector {
 
         // Calculate the Minimum Translation Vector
         Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
+        mtv.div(2f);
 
-        // Perform the translation
-        a.addPos(mtv);
+        a.applyForce(mtv, Vector2D.sub(collisionPoint, a.getPos()));
 
-        //Return true if the for loop completes
-        return true;
+        mtv.mult(-1f);
+        b.applyForce(mtv, Vector2D.sub(collisionPoint, b.getPos()));
     }
 }

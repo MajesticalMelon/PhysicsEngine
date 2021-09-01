@@ -23,7 +23,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
     CollisionDetector CD;
 
-    RigidBody square = new RigidBody(300, 400, 50, 50, 5);
+    RigidBody square = new RigidBody(300, 400, 50, 50, 10);
     RigidBody rectangle = new RigidBody(670, 350, 100, 200, 10);
     RigidBody box = new RigidBody(150, 500, 236, 185, Integer.MAX_VALUE);
 
@@ -34,11 +34,11 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
         shapes.add(square);
         shapes.add(rectangle);
-        //shapes.add(box);
+        shapes.add(box);
         shapes.add(player);
 
-        //shapes.get(0).applyForce(new Vector2D(100, 0), new Vector2D(5, 2));
-        //shapes.get(1).applyForce(new Vector2D(5, 0), new Vector2D(0, 100));
+        shapes.get(0).applyForce(new Vector2D(10, 0), new Vector2D(5, 2));
+        shapes.get(1).applyForce(new Vector2D(5, 0), new Vector2D(0, 100));
         shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
         
         CD = new CollisionDetector(this.shapes);

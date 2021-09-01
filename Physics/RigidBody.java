@@ -19,6 +19,8 @@ public class RigidBody {
     float angVel = 0;
     float angAcc = 0;
 
+    Vector2D pointOfRotation;
+
     //Physics variables
     float momentOfInertia;
     float distanceFromPivot;
@@ -37,6 +39,8 @@ public class RigidBody {
         this.height = h;
         this.mass = m;
         this.momentOfInertia = m * w * h;
+
+        this.pointOfRotation = new Vector2D(cx, cy);
 
         maxX = cx + (w/2);
         maxY = cy + (h/2);
@@ -72,6 +76,7 @@ public class RigidBody {
 
         this.linAcc = new Vector2D(0, 0);
         this.angAcc = 0;
+        this.pointOfRotation.set(this.pos);
     }
 
     public void applyForce(Vector2D force, Vector2D forcePos) {
@@ -83,76 +88,13 @@ public class RigidBody {
         this.linAcc.add(force);
     }
 
-    public void collide(RigidBody j, Vector2D pointOfCollision) {
-        Vector2D initalLinearMomentum = Vector2D.add(
-            Vector2D.mult(this.getLinearVelocity(), this.getMass()), 
-            Vector2D.mult(j.getLinearVelocity(), j.getMass())
-        );
-        
-        float totalMass = this.getMass() + j.getMass();
-
-        Vector2D velocityDifference = Vector2D.sub(this.getLinearVelocity(), j.getLinearVelocity());
-        velocityDifference.mult(this.getMass());
-        velocityDifference.add(initalLinearMomentum);
-
-        Vector2D jBodyLinVel = Vector2D.div(velocityDifference, totalMass);
-
-        Vector2D thisLinVel = Vector2D.sub(Vector2D.add(j.getLinearVelocity(), jBodyLinVel), this.getLinearVelocity());
-
-        Vector2D thisMomentumChange = Vector2D.mult(Vector2D.sub(thisLinVel, this.getLinearVelocity()), this.getMass());
-
-        Vector2D force = Vector2D.div(thisMomentumChange, 1000f / 144f);
-
-        this.applyForce(force, Vector2D.sub(pointOfCollision, this.getPos()));
-        j.applyForce(Vector2D.mult(force, -1), Vector2D.sub(pointOfCollision, j.getPos()));
-    }
-
-    private void conserveAngularMomentum(RigidBody j) {
-        // Angular Momentum //
-
-        // Do it like the linear momentum (no need to be exact)
-        float initialAngularMomentum = this.getAngularVelocity() * this.getMoment() + j.getAngularVelocity() * j.getMoment();
-
-        float totalMoment = this.getMoment() + j.getMoment();
-
-        float velocityDifference = this.getAngularVelocity() - j.getAngularVelocity();
-        velocityDifference *= this.getMoment();
-        velocityDifference += initialAngularMomentum;
-
-        float jBodyAngVel = velocityDifference / totalMoment;
-        float thisAngVel = j.getAngularVelocity() + jBodyAngVel - this.getAngularVelocity();
-
-        this.setAngularVelocity(thisAngVel);
-        j.setAngularVelocity(jBodyAngVel);
-    }
-
-    private void conserveLinearMomentum(RigidBody j) {
-        Vector2D initalLinearMomentum = Vector2D.add(
-            Vector2D.mult(this.getLinearVelocity(), this.getMass()), 
-            Vector2D.mult(j.getLinearVelocity(), j.getMass())
-        );
-        
-        float totalMass = this.getMass() + j.getMass();
-
-        Vector2D velocityDifference = Vector2D.sub(this.getLinearVelocity(), j.getLinearVelocity());
-        velocityDifference.mult(this.getMass());
-        velocityDifference.add(initalLinearMomentum);
-
-        Vector2D jBodyLinVel = Vector2D.div(velocityDifference, totalMass);
-
-        Vector2D thisLinVel = Vector2D.sub(Vector2D.add(j.getLinearVelocity(), jBodyLinVel), this.getLinearVelocity());
-
-        this.setLinearVelocity(thisLinVel);
-        j.setLinearVelocity(jBodyLinVel);
-    }
-
     private void movePoints() {
         for (Vector2D v : points) {
-            v.sub(this.getPos());
+            v.sub(pointOfRotation);
             float rotatedX = (float) (v.getX() * Math.cos(this.getAngularVelocity()) - v.getY() * Math.sin(this.getAngularVelocity()));
             float rotatedY = (float) (v.getX() * Math.sin(this.getAngularVelocity()) + v.getY() * Math.cos(this.getAngularVelocity()));
             v.set(rotatedX, rotatedY);
-            v.add(this.getPos());
+            v.add(pointOfRotation);
             v.add(this.getLinearVelocity());
         }
     }
