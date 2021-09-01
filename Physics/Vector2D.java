@@ -139,6 +139,23 @@ public class Vector2D {
         return (float) (Math.atan2(v2.y, v2.x) - Math.atan2(v1.y, v1.x));
     }
 
+    public void rotate(float radians) {
+        Vector2D rotated = new Vector2D(
+            this.x * (float)Math.cos(radians) - this.y * (float)Math.sin(radians),
+            this.x * (float)Math.sin(radians) + this.y * (float)Math.cos(radians)
+            );
+
+        this.x = rotated.x;
+        this.y = rotated.y;
+    }
+
+    public static Vector2D rotate(Vector2D v, float radians) {
+        return new Vector2D(
+            v.x * (float)Math.cos(radians) - v.y * (float)Math.sin(radians),
+            v.x * (float)Math.sin(radians) + v.y * (float)Math.cos(radians)
+            );
+    }
+
     public float getX() {
         return this.x;
     }
