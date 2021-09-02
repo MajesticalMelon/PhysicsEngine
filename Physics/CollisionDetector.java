@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
-    public Vector2D collisionPoint = new Vector2D(0, 0); // default
 
     public CollisionDetector(ArrayList<RigidBody> s) {
         bodies = s;
@@ -81,7 +80,7 @@ public class CollisionDetector {
     }
 
     // Implementation of the Seperated Axis Theorem
-    public void SAT(RigidBody a, RigidBody b) {
+    public static void SAT(RigidBody a, RigidBody b) {
         Vector2D perpLine;
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
@@ -148,16 +147,26 @@ public class CollisionDetector {
             //Check if bounds of dot products for each polygon intersect
             //Continue to check until out of points or until the condition is not met
             if ((aMin < bMax && aMin > bMin) 
-            || (aMax > bMin && aMax < bMax)
-            || (bMin < aMax && bMin > aMin)
-            || (bMax < aMax && bMax > aMin)) {
-                // Get the minimum amount of overlap in order to calculate
-                // the min translation vec
-                float currentOverlap = Math.min(aMax - bMin, bMax - aMin);
+            || (aMax > bMin && aMax < bMax)) {
+
+                if (aMin < bMax && aMin > bMin) {
+                    float currentOverlap = Math.abs(aMin - bMax);
+
+                    if (currentOverlap < overlap) {
+                        overlap = currentOverlap;
+                        smallestAxis = perpStack.get(i); // Assign the direction of translation
+                    }
+                }
+
+                if (aMax > bMin && aMax < bMax) {
+                    // Get the minimum amount of overlap in order to calculate
+                    // the min translation vec
+                    float currentOverlap = Math.abs(aMax - bMin);
                 
-                if (currentOverlap < overlap) {
-                    overlap = currentOverlap;
-                    smallestAxis = perpStack.get(i); // Assign the direction of translation
+                    if (currentOverlap < overlap) {
+                        overlap = currentOverlap;
+                        smallestAxis = perpStack.get(i); // Assign the direction of translation
+                    }
                 }
 
                 continue;
@@ -169,13 +178,14 @@ public class CollisionDetector {
         Vector2D aToB = Vector2D.sub(b.getPos(), a.getPos());
         Vector2D bToA = Vector2D.sub(a.getPos(), b.getPos());
 
+        Vector2D collisionPoint = new Vector2D(0, 0); // default
         float smallestAngle = Float.POSITIVE_INFINITY;
 
         // Find a collision point
         for (Vector2D point : a.getPoints()) {
             float testAngle = Math.abs(Vector2D.angleBetween(aToB, point));
 
-            if (testAngle > Math.PI) {
+            while (testAngle > Math.PI) {
                 testAngle -= Math.PI;
             }
 
@@ -189,7 +199,7 @@ public class CollisionDetector {
         for (Vector2D point : b.getPoints()) {
             float testAngle = Math.abs(Vector2D.angleBetween(bToA, point));
 
-            if (testAngle > Math.PI) {
+            while (testAngle > Math.PI) {
                 testAngle -= Math.PI;
             }
 
@@ -201,11 +211,16 @@ public class CollisionDetector {
 
         // Calculate the Minimum Translation Vector
         Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
-        mtv.div(2f);
 
-        a.applyForce(mtv, Vector2D.sub(collisionPoint, a.getPos()));
+        if (b.getMass() > a.getMass()) {
+            a.addPos(mtv);
+        } else {
+            b.addPos(Vector2D.mult(mtv, -1));
+        }
+
+        a.applyForce(Vector2D.mult(mtv, a.getMass()), Vector2D.sub(collisionPoint, a.getPos()));
 
         mtv.mult(-1f);
-        b.applyForce(mtv, Vector2D.sub(collisionPoint, b.getPos()));
+        b.applyForce(Vector2D.mult(mtv, b.getMass()), Vector2D.sub(collisionPoint, b.getPos()));
     }
 }
