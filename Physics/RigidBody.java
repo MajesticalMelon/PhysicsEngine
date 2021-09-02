@@ -4,34 +4,33 @@ import java.awt.Polygon;
 import java.util.ArrayList;
 
 public class RigidBody {
-    //Initial variables
-    float width, height, mass;
-    ArrayList<Vector2D> points = new ArrayList<>();
-    ArrayList<Vector2D> edges = new ArrayList<>();
+    // Initial variables
+    private float width, height, mass;
+    private ArrayList<Vector2D> points = new ArrayList<>();
+    private ArrayList<Vector2D> edges = new ArrayList<>();
+    private BodyType type;
 
-    //Linear variables
-    Vector2D pos;
-    Vector2D linVel = new Vector2D(0, 0);
-    Vector2D linAcc = new Vector2D(0, 0);
+    // Linear variables
+    private Vector2D pos;
+    private Vector2D linVel = new Vector2D(0, 0);
+    private Vector2D linAcc = new Vector2D(0, 0);
 
-    //Angular variables
-    float rotation = 0;
-    float angVel = 0;
-    float angAcc = 0;
+    // Angular variables
+    private float rotation = 0;
+    private float angVel = 0;
+    private float angAcc = 0;
 
-    Vector2D pointOfRotation;
+    private Vector2D pointOfRotation;
 
-    //Physics variables
-    float momentOfInertia;
-    float distanceFromPivot;
-    float momentumTransfer;
-    Vector2D force = new Vector2D(0, 0);
+    // Physics variables
+    private float momentOfInertia;
+    private Vector2D force = new Vector2D(0, 0);
 
-    //Collision variables
-    float maxX = 0;
-    float maxY = 0;
-    float minX = 0;
-    float minY = 0;
+    // Collision variables
+    private float maxX = 0;
+    private float maxY = 0;
+    private float minX = 0;
+    private float minY = 0;
 
     public RigidBody(float cx, float cy, float w, float h, float m) {
         this.pos = new Vector2D(cx, cy);
@@ -40,13 +39,15 @@ public class RigidBody {
         this.mass = m;
         this.momentOfInertia = m * w * h;
 
+        this.type = BodyType.Dynamic;
+
         this.pointOfRotation = new Vector2D(cx, cy);
 
-        maxX = cx + (w/2);
-        maxY = cy + (h/2);
+        maxX = cx + (w / 2);
+        maxY = cy + (h / 2);
 
-        minX = cx - (w/2);
-        minY = cy - (h/2);
+        minX = cx - (w / 2);
+        minY = cy - (h / 2);
 
         points.add(new Vector2D(minX, minY));
         points.add(new Vector2D(maxX, minY));
@@ -59,28 +60,31 @@ public class RigidBody {
     }
 
     public void update() {
-        //Update position
-        this.pos.add(this.linVel);
-        this.linVel.add(this.linAcc);
+        if (this.type != BodyType.Static) {
+            // Update position
+            this.pos.add(this.linVel);
+            this.linVel.add(this.linAcc);
 
-        //Update angle
-        this.rotation += this.angVel;
-        this.angVel += this.angAcc;
+            // Update angle
+            this.rotation += this.angVel;
+            this.angVel += this.angAcc;
 
-        movePoints();
+            movePoints();
 
-        force = Vector2D.mult(this.linAcc, this.mass);
+            force = Vector2D.mult(this.linAcc, this.mass);
 
-        arrangePoints();
-        calculateEdges();
+            arrangePoints();
+            calculateEdges();
 
-        this.linAcc = new Vector2D(0, 0);
-        this.angAcc = 0;
-        this.pointOfRotation.set(this.pos);
+            this.linAcc = new Vector2D(0, 0);
+            this.angAcc = 0;
+            this.pointOfRotation.set(this.pos);
+        }
     }
 
     public void applyForce(Vector2D force, Vector2D forcePos) {
-        float angleBetween = (float) (Math.atan2(force.getY(), force.getX()) - Math.atan2(forcePos.getY(), forcePos.getX()));
+        float angleBetween = (float) (Math.atan2(force.getY(), force.getX())
+                - Math.atan2(forcePos.getY(), forcePos.getX()));
 
         this.angAcc += (force.mag() * forcePos.mag() * Math.sin(angleBetween)) / this.getMoment();
 
@@ -88,11 +92,17 @@ public class RigidBody {
         this.linAcc.add(force);
     }
 
+    public void collide(RigidBody j) {
+
+    }
+
     private void movePoints() {
         for (Vector2D v : points) {
             v.sub(pointOfRotation);
-            float rotatedX = (float) (v.getX() * Math.cos(this.getAngularVelocity()) - v.getY() * Math.sin(this.getAngularVelocity()));
-            float rotatedY = (float) (v.getX() * Math.sin(this.getAngularVelocity()) + v.getY() * Math.cos(this.getAngularVelocity()));
+            float rotatedX = (float) (v.getX() * Math.cos(this.getAngularVelocity())
+                    - v.getY() * Math.sin(this.getAngularVelocity()));
+            float rotatedY = (float) (v.getX() * Math.sin(this.getAngularVelocity())
+                    + v.getY() * Math.cos(this.getAngularVelocity()));
             v.set(rotatedX, rotatedY);
             v.add(pointOfRotation);
             v.add(this.getLinearVelocity());
@@ -111,9 +121,8 @@ public class RigidBody {
 
     private void calculateEdges() {
         for (int i = 0; i < points.size() - 1; i++) {
-            edges.get(i).set(Vector2D.sub(points.get(i), points.get((i + 1))));
+            edges.get(i).set(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
         }
-        edges.get(points.size() - 1).set(Vector2D.sub(points.get(points.size() - 1), points.get(0)));
     }
 
     public Vector2D getPos() {
@@ -156,6 +165,10 @@ public class RigidBody {
         return this.momentOfInertia;
     }
 
+    public BodyType getType() {
+        return this.type;
+    }
+
     public void setLinearVelocity(Vector2D v) {
         this.linVel = v;
     }
@@ -172,16 +185,22 @@ public class RigidBody {
         this.angVel = w;
     }
 
+    public void setType(BodyType bodyType) {
+        this.type = bodyType;
+    }
+
     public void addPos(Vector2D p) {
-        for (Vector2D v : this.points) {
-            v.add(p);
+        if (this.type != BodyType.Static) {
+            for (Vector2D v : this.points) {
+                v.add(p);
+            }
+            this.pos.add(p);
         }
-        this.pos.add(p);
     }
 
     /**
      * @return the rigidibody as polygon
-    **/
+     **/
     public Polygon getPolygon() {
         Polygon body = new Polygon();
         for (Vector2D v : this.points) {
