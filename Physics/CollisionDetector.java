@@ -10,7 +10,7 @@ public class CollisionDetector {
         bodies = s;
     }
     
-    int partition(ArrayList<Vector2D> arr, int low, int high) 
+    private int partition(ArrayList<Vector2D> arr, int low, int high) 
     { 
         float pivot = arr.get(high).getX();  
         int i = (low-1); // index of smaller element 
@@ -40,7 +40,7 @@ public class CollisionDetector {
     //   arr[] --> Array to be sorted, 
     //   low  --> Starting index, 
     //   high  --> Ending index 
-    void sort(ArrayList<Vector2D> arr, int low, int high) 
+    private void sort(ArrayList<Vector2D> arr, int low, int high) 
     { 
         if (low < high) 
         { 
@@ -80,7 +80,7 @@ public class CollisionDetector {
     }
 
     // Implementation of the Seperated Axis Theorem
-    public static void SAT(RigidBody a, RigidBody b) {
+    private static void SAT(RigidBody a, RigidBody b) {
         Vector2D perpLine;
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
@@ -183,12 +183,16 @@ public class CollisionDetector {
 
         // Find a collision point
         for (Vector2D point : a.getPoints()) {
+            // Get the angle between the vector pointing from
+            // body a to body b and the vector that describes point
             float testAngle = Math.abs(Vector2D.angleBetween(aToB, point));
 
+            // Get an angle that is less than 180 degrees
             while (testAngle > Math.PI) {
                 testAngle -= Math.PI;
             }
 
+            // Compare the calulated angle to the current smallest angle
             if (testAngle < smallestAngle) {
                 smallestAngle = testAngle;
                 collisionPoint = point;
@@ -212,15 +216,20 @@ public class CollisionDetector {
         // Calculate the Minimum Translation Vector
         Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
 
-        if (b.getMass() > a.getMass()) {
+        // Move different objects depending on mass
+        if (b.getMass() > a.getMass() && a.getType() == BodyType.Dynamic) {
             a.addPos(mtv);
-        } else {
+        } else if (b.getType() == BodyType.Dynamic) {
             b.addPos(Vector2D.mult(mtv, -1));
+        } else if (a.getType() == BodyType.Dynamic) {
+            a.addPos(mtv);
         }
 
-        a.applyForce(Vector2D.mult(mtv, a.getMass()), Vector2D.sub(collisionPoint, a.getPos()));
+        Vector2D force = Vector2D.mult(mtv, mtv.mag() >= 1 ? mtv.mag() : 1);
 
-        mtv.mult(-1f);
-        b.applyForce(Vector2D.mult(mtv, b.getMass()), Vector2D.sub(collisionPoint, b.getPos()));
+        a.applyForce(force, Vector2D.sub(collisionPoint, a.getPos()));
+
+        force.mult(-1f);
+        b.applyForce(force, Vector2D.sub(collisionPoint, b.getPos()));
     }
 }
