@@ -225,7 +225,7 @@ public class CollisionDetector {
             a.addPos(mtv);
         }
 
-        Vector2D force = Vector2D.mult(mtv, mtv.mag() >= 1 ? mtv.mag() : 1);
+        Vector2D force = Vector2D.mult(mtv, (a.getMass() + b.getMass()) / 2f);
 
         a.applyForce(force, Vector2D.sub(collisionPoint, a.getPos()));
 
