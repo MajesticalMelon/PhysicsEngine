@@ -175,4 +175,8 @@ public class Vector2D {
     public Vector2D get() {
         return this;
     }
+
+    public Vector2D copy() {
+        return new Vector2D(x, y);
+    }
 }

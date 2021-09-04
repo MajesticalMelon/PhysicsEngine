@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 public class Terrain {
     private ArrayList<Vector2D> terrainPoints;
     private ArrayList<Vector2D> terrainEdges;
+    private ArrayList<Vector2D> terrainNormals;
 
     public Terrain(ArrayList<Vector2D> points) {
         terrainPoints = points;
@@ -17,6 +18,11 @@ public class Terrain {
         for (int i = 1; i < points.size(); i++) {
             terrainEdges.add(Vector2D.sub(terrainPoints.get(i), terrainPoints.get(i - 1)));
         }
+
+        // Get normals
+        terrainNormals = new ArrayList<>();
+
+        calculateNormals();
     }
 
     public Terrain() {
@@ -29,7 +35,9 @@ public class Terrain {
 
     public void addPoint(Vector2D v) {
         if (terrainPoints.size() != 0) {
-        terrainEdges.add(Vector2D.sub(v, terrainPoints.get(terrainPoints.size() - 1)));
+            Vector2D edge = Vector2D.sub(v, terrainPoints.get(terrainPoints.size() - 1));
+            terrainEdges.add(edge);
+            terrainNormals.add(edge.normal2());
         }
         
         terrainPoints.add(v);
@@ -56,7 +64,7 @@ public class Terrain {
 
             Vector2D midPoint = Vector2D.add(point0, Vector2D.div(edge, 2));
 
-            Vector2D normal = edge.normal2();
+            Vector2D normal = terrainNormals.get(i).copy();
             normal.mult(50);
 
             g2.drawLine(
@@ -66,5 +74,19 @@ public class Terrain {
                 (int)midPoint.getY() + (int)normal.getY()
             );
         }
+    }
+
+    public void calculateNormals() {
+        for (int i = 0; i < terrainEdges.size(); i++) {
+            Vector2D edge = terrainEdges.get(i);
+
+            Vector2D normal = edge.normal2();
+
+            terrainNormals.add(normal);
+        }
+    }
+
+    public ArrayList<Vector2D> getNormals() {
+        return terrainNormals;
     }
 }
