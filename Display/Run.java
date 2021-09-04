@@ -7,6 +7,9 @@ import javax.swing.JFrame;
 public class Run extends JFrame {
     private static final long serialVersionUID = 1L;
 
+    public static int WIDTH = 1000;
+    public static int HEIGHT = 800;
+
     Run() {
         Canvas canvas = new Canvas();
         addKeyListener(canvas);
@@ -14,7 +17,7 @@ public class Run extends JFrame {
         pack();
 
         setTitle("Physics");
-        setSize(1000, 1000);
+        setSize(WIDTH, HEIGHT);
     }
 
     public static void main(String[] args) {

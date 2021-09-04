@@ -156,6 +156,14 @@ public class Vector2D {
             );
     }
 
+    public Vector2D normal1() {
+        return norm(new Vector2D(-y, x));
+    }
+
+    public Vector2D normal2() {
+        return norm(new Vector2D(y, -x));
+    }
+
     public float getX() {
         return this.x;
     }
