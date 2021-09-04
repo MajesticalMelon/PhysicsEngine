@@ -187,6 +187,7 @@ public class RigidBody {
 
     public void setType(BodyType bodyType) {
         this.type = bodyType;
+        this.mass = 1f;
     }
 
     public void addPos(Vector2D p) {
@@ -196,6 +197,13 @@ public class RigidBody {
             }
             this.pos.add(p);
         }
+    }
+
+    /**
+     * @return The Linear Momentum of this body
+    **/
+    public Vector2D getLinearMomentum() {
+        return Vector2D.mult(this.getLinearVelocity(), this.getMass());
     }
 
     /**
