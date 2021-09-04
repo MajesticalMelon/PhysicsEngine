@@ -4,6 +4,9 @@ import java.awt.Polygon;
 import java.util.ArrayList;
 
 public class RigidBody {
+    // Gravity
+    private Vector2D gravity;
+
     // Initial variables
     private float width, height, mass;
     private ArrayList<Vector2D> points = new ArrayList<>();
@@ -39,6 +42,8 @@ public class RigidBody {
         this.mass = m;
         this.momentOfInertia = m * w * h;
 
+        gravity = new Vector2D(0, 0.09f);
+
         this.type = BodyType.Dynamic;
 
         this.pointOfRotation = new Vector2D(cx, cy);
@@ -61,6 +66,8 @@ public class RigidBody {
 
     public void update() {
         if (this.type != BodyType.Static) {
+            this.linAcc.add(gravity);
+
             // Update position
             this.pos.add(this.linVel);
             this.linVel.add(this.linAcc);

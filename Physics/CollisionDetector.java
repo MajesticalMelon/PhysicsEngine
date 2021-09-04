@@ -1,13 +1,16 @@
 package Physics;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
+    ArrayList<Terrain> terrains = new ArrayList<>();
 
-    public CollisionDetector(ArrayList<RigidBody> s) {
+    public CollisionDetector(ArrayList<RigidBody> s, ArrayList<Terrain> t) {
         bodies = s;
+        terrains = t;
     }
     
     private int partition(ArrayList<Vector2D> arr, int low, int high) 
@@ -73,14 +76,17 @@ public class CollisionDetector {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
-                // Detect and resolve collisions
+                // Detect and resolve collisions between two bodies
                 SAT(a, b);
+
+                // Detect and resolve terrain collisions
+
             }
         }
     }
 
     // Implementation of the Seperated Axis Theorem
-    private static void SAT(RigidBody a, RigidBody b) {
+    private void SAT(RigidBody a, RigidBody b) {
         Vector2D perpLine;
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
@@ -231,5 +237,9 @@ public class CollisionDetector {
 
         force.mult(-1f);
         b.applyForce(force, Vector2D.sub(collisionPoint, b.getPos()));
+    }
+
+    private void terrainCollision(RigidBody a, Terrain terra) {
+        // Find the the terrain points under the body
     }
 }

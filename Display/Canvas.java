@@ -15,6 +15,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
 
     public ArrayList<RigidBody> shapes = new ArrayList<>();
+    public ArrayList<Terrain> terrains = new ArrayList<>();
 
     public Timer gameTimer = new Timer(1000/144, this);
     private int delay = 0;
@@ -39,19 +40,21 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         shapes.add(box);
         shapes.add(player);
 
-        shapes.get(0).applyForce(new Vector2D(5, 0), new Vector2D(0, 0));
-        shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
+        //shapes.get(0).applyForce(new Vector2D(5, 0), new Vector2D(0, 0));
+        //shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
-        
-        CD = new CollisionDetector(this.shapes);
 
         // Create a terrain
         ground.addPoint(new Vector2D(0, Run.HEIGHT - 50));
         ground.addPoint(new Vector2D(250, Run.HEIGHT - 50));
         ground.addPoint(new Vector2D(500, Run.HEIGHT - 200));
         ground.addPoint(new Vector2D(800, Run.HEIGHT - 200));
+        ground.addPoint(new Vector2D(800, Run.HEIGHT - 300));
+        ground.addPoint(new Vector2D(1000, Run.HEIGHT - 300));
 
-        System.out.println(ground.getTerrain().get(0).getY());
+        terrains.add(ground);
+
+        CD = new CollisionDetector(this.shapes, this.terrains);
 
         gameTimer.start();
     }
@@ -70,36 +73,8 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         }
 
         // Draw the ground
-        for (int terrainIndex = 0; terrainIndex < ground.getTerrain().size() - 1; terrainIndex++) {
-            g2.drawLine(
-                (int)ground.getTerrain().get(terrainIndex).getX(), 
-                (int)ground.getTerrain().get(terrainIndex).getY(), 
-                (int)ground.getTerrain().get(terrainIndex + 1).getX(), 
-                (int)ground.getTerrain().get(terrainIndex + 1).getY()
-                );
-        }
-
-        // Draw ground normals
-        for (int terrainIndex = 1; terrainIndex < ground.getTerrain().size(); terrainIndex++) {
-            Vector2D midPoint = new Vector2D(
-                (ground.getTerrain().get(terrainIndex).getX() - ground.getTerrain().get(terrainIndex - 1).getX()) / 2f,
-                (ground.getTerrain().get(terrainIndex).getY() - ground.getTerrain().get(terrainIndex - 1).getY()) / 2f
-                );
-
-            midPoint.add(ground.getTerrain().get(terrainIndex - 1));
-
-            Vector2D normal = Vector2D.sub(ground.getTerrain().get(terrainIndex), ground.getTerrain().get(terrainIndex - 1)).normal1();
-            normal.add(midPoint);
-            normal.add(5);
-
-            g2.setColor(Color.BLUE);
-            g2.drawLine(
-                (int)midPoint.getX(), 
-                (int)midPoint.getY(), 
-                (int)normal.getX(), 
-                (int)normal.getY()
-                );
-        }
+        ground.draw(g2);
+        ground.drawNormals(g2);
     }
 
     @Override
