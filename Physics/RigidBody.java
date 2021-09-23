@@ -10,6 +10,7 @@ public class RigidBody {
     // Initial variables
     private float width, height, mass;
     private ArrayList<Vector2D> points = new ArrayList<>();
+    private ArrayList<Vector2D> prevPoints = new ArrayList<>();
     private ArrayList<Vector2D> edges = new ArrayList<>();
     private BodyType type;
 
@@ -42,7 +43,7 @@ public class RigidBody {
         this.mass = m;
         this.momentOfInertia = m * w * h;
 
-        gravity = new Vector2D(0, 0.02f);
+        gravity = new Vector2D(0, 0.09f);
 
         this.type = BodyType.Dynamic;
 
@@ -59,6 +60,8 @@ public class RigidBody {
         points.add(new Vector2D(maxX, maxY));
         points.add(new Vector2D(minX, maxY));
 
+        prevPoints.addAll(points);
+
         for (int i = 0; i < points.size(); i++) {
             edges.add(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
         }
@@ -66,7 +69,24 @@ public class RigidBody {
 
     public void update() {
         if (this.type != BodyType.Static) {
+            // Save previous posiiton of points
+            this.prevPoints.clear();
+            this.prevPoints.addAll(points);
+
             this.linAcc.add(gravity);
+
+            // Stop body if it's going slow enough
+            if (Math.abs(this.linVel.getX()) < 0.001f) {
+                this.linVel.set(0f, this.linVel.getY());
+            }
+    
+            if (Math.abs(this.linVel.getY()) < 0.001f) {
+                this.linVel.set(this.linVel.getX(), 0f);
+            }
+
+            if (Math.abs(this.angVel) < 0.001f) {
+                this.angVel = 0f;
+            }
 
             // Update position
             this.pos.add(this.linVel);
@@ -86,6 +106,8 @@ public class RigidBody {
             this.linAcc = new Vector2D(0, 0);
             this.angAcc = 0;
             this.pointOfRotation.set(this.pos);
+
+            System.out.println(points.get(0).getX() + ", " + prevPoints.get(0).getX());
         }
     }
 
@@ -254,6 +276,10 @@ public class RigidBody {
 
     public Vector2D getForce() {
         return this.force;
+    }
+
+    public ArrayList<Vector2D> getPreviousPoints() {
+        return this.prevPoints;
     }
 
     public ArrayList<Vector2D> getPoints() {

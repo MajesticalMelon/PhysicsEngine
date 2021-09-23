@@ -266,24 +266,63 @@ public class CollisionDetector {
         // Check if any point is below the terrain
         for (int i = terrainLeft; i < terrainRight; i++) {
             Vector2D terrainPoint = terra.getTerrain().get(i);
-           
+            Vector2D nextTerrainPoint = terra.getTerrain().get((i + 1) % terra.getTerrain().size());
+            Vector2D terrainEdge = terra.getEdges().get(i);
 
-            for (Vector2D point : a.getPoints()) {
-                Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
-                
-                float angleBetween = Math.abs(Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i)));
+            float minDist = Float.POSITIVE_INFINITY;
 
-                if ( angleBetween > Math.PI / 2 && angleBetween < 3f * Math.PI / 2f) {
-                    // Calculate minimum translation vector
-                    
+            for (int j = 0; j < a.getPoints().size(); j++) {
+                Vector2D point = a.getPoints().get(j);
+                Vector2D prevPoint = a.getPreviousPoints().get(j);
+                Vector2D pointVel = Vector2D.sub(point, prevPoint);
 
-                    // Apply force
-                    a.setLinearVelocity(new Vector2D(0f, 0f));
-                    a.setAngularVelocity(0f);
-                    a.setLinearAcceleration(new Vector2D(0f, 0f));
-                    a.setAngularAcceleration(0f);
-                    a.applyForce(Vector2D.mult(terra.getNormals().get(i), 1f), point);
+                if (point.getY() > terrainPoint.getY() || point.getY() > nextTerrainPoint.getY()) {
+                    Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
+
+                    float angleToNormal = Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i));
+
+                    if (Math.abs(angleToNormal) > Math.PI / 2 && Math.abs(angleToNormal) < 3f * Math.PI / 2f) {
+                        // TODO: Calculate minimum translation vector
+                        float angleToEdge = Vector2D.angleBetween(tPointToRBPoint, terrainEdge);
+                        minDist = Math.abs(Math.min(minDist, tPointToRBPoint.mag() * (float)Math.sin(angleToEdge)));
+                        minDist += 0.1f;
+
+                        // Apply rebounding force //
+                        float currentVelMag = a.getLinearVelocity().mag() * 0.8f;
+
+                        a.applyForce(Vector2D.mult(terra.getNormals().get(i), currentVelMag), Vector2D.sub(point, a.getPos()));
+
+                        // Apply friction force //
+
+                        // Make sure the parallel always points right and down
+                        Vector2D edgeParallel = Vector2D.norm(
+                            Vector2D.norm(new Vector2D(
+                                Math.abs(terrainEdge.getX()), 
+                                Math.abs(terrainEdge.getY())
+                                ))
+                        );
+
+                        edgeParallel.mult(
+                            new Vector2D(
+                                -Math.signum(pointVel.getX()),
+                                -Math.signum(pointVel.getY())
+                                )
+                        );
+
+                        float frictionMultiplier = Math.min(
+                            Math.abs(Vector2D.angleBetween(pointVel, edgeParallel)), 
+                            Math.abs(Vector2D.angleBetween(pointVel, Vector2D.mult(edgeParallel, -1f)))
+                            );
+
+
+                        a.applyForce(Vector2D.mult(edgeParallel, 1f), Vector2D.sub(point, a.getPos()));
+                    }
                 }
+            }
+
+            // Adjust position if there was a collision
+            if (minDist < Float.POSITIVE_INFINITY) {
+                a.addPos(Vector2D.mult(terra.getNormals().get(i), minDist));
             }
         }
     }

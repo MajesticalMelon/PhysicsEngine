@@ -40,7 +40,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         //shapes.add(box);
         //shapes.add(player);
 
-        shapes.get(0).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
+        shapes.get(0).applyForce(new Vector2D(-5, 0), new Vector2D(0, -1));
         //shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
 
@@ -102,11 +102,11 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         delay++;
         if (delay > 100) {
+            CD.detectCollision(this.shapes);
+
             for (RigidBody body : shapes) {
                 body.update();
             }
-
-            CD.detectCollision(this.shapes);
         }
 
         repaint();
