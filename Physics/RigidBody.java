@@ -42,7 +42,7 @@ public class RigidBody {
         this.mass = m;
         this.momentOfInertia = m * w * h;
 
-        gravity = new Vector2D(0, 0.01f);
+        gravity = new Vector2D(0, 0.02f);
 
         this.type = BodyType.Dynamic;
 

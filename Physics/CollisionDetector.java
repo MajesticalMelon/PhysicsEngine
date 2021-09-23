@@ -263,6 +263,8 @@ public class CollisionDetector {
             }
         }
 
+        ArrayList<Vector2D[]> collisionPoints = new ArrayList<>();
+
         // Check if any point is below the terrain
         for (int i = terrainLeft; i < terrainRight; i++) {
             Vector2D terrainPoint = terra.getTerrain().get(i);
@@ -270,13 +272,22 @@ public class CollisionDetector {
             for (Vector2D point : a.getPoints()) {
                 Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
                 
-                if (Math.abs(Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i))) > Math.PI / 2) {
-                    float currentVelMag = a.getLinearVelocity().mag();
-                    a.setLinearVelocity(new Vector2D(0f, 0f));
-                    a.setLinearAcceleration(new Vector2D(0f, 0f));
-                    a.applyForce(Vector2D.mult(terra.getNormals().get(i), currentVelMag), point);
+                if (Math.abs(Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i))) >= Math.PI / 2) {
+                    Vector2D[] pointAndNormal = {
+                        point, terra.getNormals().get(i)
+                    };
+                    collisionPoints.add(pointAndNormal);
                 }
             }
+        }
+
+        // Resolve Collisions
+        for (Vector2D[] point : collisionPoints) {
+            float currentVelMag = a.getLinearMomentum().mag() + a.getAngularVelocity();
+            a.setLinearAcceleration(new Vector2D(0f, 0f));
+            a.applyForce(Vector2D.mult(point[1], currentVelMag * 0.5f), point[0]);
+
+            System.out.println(point[0].getX());
         }
     }
 }
