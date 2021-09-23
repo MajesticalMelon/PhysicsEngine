@@ -88,6 +88,7 @@ public class CollisionDetector {
     }
 
     // Implementation of the Seperated Axis Theorem
+    // TODO: Find normal of collision edge for applying forces
     private void SAT(RigidBody a, RigidBody b) {
         Vector2D perpLine;
         float dot;
@@ -236,6 +237,7 @@ public class CollisionDetector {
         b.applyForce(force, Vector2D.sub(collisionPoint, b.getPos()));
     }
 
+    // Collide with the terrain
     private void terrainCollision(RigidBody a, Terrain terra) {
         // Find the the terrain points to the left and right of the body
         // Indices of the closest terrain points outside of the body
@@ -262,13 +264,17 @@ public class CollisionDetector {
         }
 
         // Check if any point is below the terrain
-        // TODO: Fix this check
         for (int i = terrainLeft; i < terrainRight; i++) {
             Vector2D terrainPoint = terra.getTerrain().get(i);
 
             for (Vector2D point : a.getPoints()) {
-                if (point.getY() > terrainPoint.getY()) {
-                    a.applyForce(Vector2D.mult(terra.getNormals().get(i), 1f), point);
+                Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
+                
+                if (Math.abs(Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i))) > Math.PI / 2) {
+                    float currentVelMag = a.getLinearVelocity().mag();
+                    a.setLinearVelocity(new Vector2D(0f, 0f));
+                    a.setLinearAcceleration(new Vector2D(0f, 0f));
+                    a.applyForce(Vector2D.mult(terra.getNormals().get(i), currentVelMag), point);
                 }
             }
         }
