@@ -263,31 +263,28 @@ public class CollisionDetector {
             }
         }
 
-        ArrayList<Vector2D[]> collisionPoints = new ArrayList<>();
-
         // Check if any point is below the terrain
         for (int i = terrainLeft; i < terrainRight; i++) {
             Vector2D terrainPoint = terra.getTerrain().get(i);
+           
 
             for (Vector2D point : a.getPoints()) {
                 Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
                 
-                if (Math.abs(Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i))) >= Math.PI / 2) {
-                    Vector2D[] pointAndNormal = {
-                        point, terra.getNormals().get(i)
-                    };
-                    collisionPoints.add(pointAndNormal);
+                float angleBetween = Math.abs(Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i)));
+
+                if ( angleBetween > Math.PI / 2 && angleBetween < 3f * Math.PI / 2f) {
+                    // Calculate minimum translation vector
+                    
+
+                    // Apply force
+                    a.setLinearVelocity(new Vector2D(0f, 0f));
+                    a.setAngularVelocity(0f);
+                    a.setLinearAcceleration(new Vector2D(0f, 0f));
+                    a.setAngularAcceleration(0f);
+                    a.applyForce(Vector2D.mult(terra.getNormals().get(i), 1f), point);
                 }
             }
-        }
-
-        // Resolve Collisions
-        for (Vector2D[] point : collisionPoints) {
-            float currentVelMag = a.getLinearMomentum().mag() + a.getAngularVelocity();
-            a.setLinearAcceleration(new Vector2D(0f, 0f));
-            a.applyForce(Vector2D.mult(point[1], currentVelMag * 0.5f), point[0]);
-
-            System.out.println(point[0].getX());
         }
     }
 }

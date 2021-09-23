@@ -37,10 +37,10 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
         shapes.add(square);
         //shapes.add(rectangle);
-        shapes.add(box);
+        //shapes.add(box);
         //shapes.add(player);
 
-        shapes.get(0).applyForce(new Vector2D(5, 0), new Vector2D(0, 0));
+        shapes.get(0).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
 

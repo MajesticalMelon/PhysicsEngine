@@ -89,4 +89,8 @@ public class Terrain {
     public ArrayList<Vector2D> getNormals() {
         return terrainNormals;
     }
+
+    public ArrayList<Vector2D> getEdges() {
+        return terrainEdges;
+    }
 }
