@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -36,8 +37,8 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         box.setType(BodyType.Static);
 
         shapes.add(square);
-        //shapes.add(rectangle);
-        //shapes.add(box);
+        shapes.add(rectangle);
+        shapes.add(box);
         //shapes.add(player);
 
         shapes.get(0).applyForce(new Vector2D(5, 0), new Vector2D(0, -5));
@@ -45,6 +46,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         //shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
 
         // Create a terrain
+        ground.addPoint(new Vector2D(0, Run.HEIGHT - 200));
         ground.addPoint(new Vector2D(0, Run.HEIGHT - 50));
         ground.addPoint(new Vector2D(250, Run.HEIGHT - 50));
         ground.addPoint(new Vector2D(500, Run.HEIGHT - 200));

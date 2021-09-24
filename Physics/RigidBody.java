@@ -1,11 +1,13 @@
 package Physics;
 
 import java.awt.Polygon;
+import java.awt.geom.AffineTransform;
+
 import java.util.ArrayList;
 
 public class RigidBody {
     // Gravity
-    private Vector2D gravity;
+    public static Vector2D GRAVITY = new Vector2D(0, 0.009f);;
 
     // Initial variables
     private float width, height, mass;
@@ -13,6 +15,7 @@ public class RigidBody {
     private ArrayList<Vector2D> pointVels = new ArrayList<>();
     private ArrayList<Vector2D> edges = new ArrayList<>();
     private BodyType type;
+    private AffineTransform affineRotation;
 
     // Linear variables
     private Vector2D pos;
@@ -24,11 +27,9 @@ public class RigidBody {
     private float angVel = 0;
     private float angAcc = 0;
 
-    private Vector2D pointOfRotation;
-
     // Physics variables
     private float momentOfInertia;
-    private Vector2D force = new Vector2D(0, 0);
+    private Vector2D force;
 
     // Collision variables
     private float maxX = 0;
@@ -42,12 +43,9 @@ public class RigidBody {
         this.height = h;
         this.mass = m;
         this.momentOfInertia = m * w * h;
-
-        gravity = new Vector2D(0, 0.09f);
+        this.affineRotation = AffineTransform.getRotateInstance(this.rotation, cx, cy);
 
         this.type = BodyType.Dynamic;
-
-        this.pointOfRotation = new Vector2D(cx, cy);
 
         maxX = cx + (w / 2);
         maxY = cy + (h / 2);
@@ -67,21 +65,8 @@ public class RigidBody {
 
     public void update() {
         if (this.type != BodyType.Static) {
-
-            this.linAcc.add(gravity);
-
-            // Stop body if it's going slow enough
-            if (Math.abs(this.linVel.getX()) < 0.001f) {
-                this.linVel.set(0f, this.linVel.getY());
-            }
-    
-            if (Math.abs(this.linVel.getY()) < 0.001f) {
-                this.linVel.set(this.linVel.getX(), 0f);
-            }
-
-            if (Math.abs(this.angVel) < 0.001f && Math.abs(this.rotation) < 0.001f) {
-                this.angVel = 0f;
-            }
+            // Apply gravity
+            this.linAcc.add(Vector2D.mult(RigidBody.GRAVITY, this.mass));
 
             // Update position
             this.pos.add(this.linVel);
@@ -92,16 +77,22 @@ public class RigidBody {
             this.rotation %= 2f * Math.PI;
             this.angVel += this.angAcc;
 
+            // Rotate points and apply velocities
             movePoints();
+            calculateEdges(); // Recalcualte the edges
 
+            // Update transform
+            this.affineRotation = AffineTransform.getRotateInstance(this.rotation, this.pos.getX(), this.pos.getY());
+
+            // Calculate the force on this object
             force = Vector2D.mult(this.linAcc, this.mass);
 
+            // Determine the bounds of this object
             arrangePoints();
-            calculateEdges();
 
+            // Reset accelerations
             this.linAcc = new Vector2D(0, 0);
             this.angAcc = 0;
-            this.pointOfRotation.set(this.pos);
         }
     }
 
@@ -124,13 +115,13 @@ public class RigidBody {
         for (Vector2D v : points) {
             Vector2D pointCopy = new Vector2D(v.getX(), v.getY());
 
-            v.sub(pointOfRotation);
+            v.sub(this.pos);
             float rotatedX = (float) (v.getX() * Math.cos(this.getAngularVelocity())
                     - v.getY() * Math.sin(this.getAngularVelocity()));
             float rotatedY = (float) (v.getX() * Math.sin(this.getAngularVelocity())
                     + v.getY() * Math.cos(this.getAngularVelocity()));
             v.set(rotatedX, rotatedY);
-            v.add(pointOfRotation);
+            v.add(this.pos);
             v.add(this.getLinearVelocity());
 
             this.pointVels.add(Vector2D.sub(v, pointCopy));
@@ -243,6 +234,13 @@ public class RigidBody {
             body.addPoint((int) v.getX(), (int) v.getY());
         }
         return body;
+    }
+
+    /**
+     * @return The Affine Transformation containing this body's rotation
+     */
+    public AffineTransform getAffineRotation() {
+        return affineRotation;
     }
 
     /**
