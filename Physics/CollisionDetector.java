@@ -273,8 +273,6 @@ public class CollisionDetector {
 
             for (int j = 0; j < a.getPoints().size(); j++) {
                 Vector2D point = a.getPoints().get(j);
-                Vector2D prevPoint = a.getPreviousPoints().get(j);
-                Vector2D pointVel = Vector2D.sub(point, prevPoint);
 
                 if (point.getY() > terrainPoint.getY() || point.getY() > nextTerrainPoint.getY()) {
                     Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
@@ -282,15 +280,15 @@ public class CollisionDetector {
                     float angleToNormal = Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i));
 
                     if (Math.abs(angleToNormal) > Math.PI / 2 && Math.abs(angleToNormal) < 3f * Math.PI / 2f) {
-                        // TODO: Calculate minimum translation vector
+                        // Calculate minimum translation vector
                         float angleToEdge = Vector2D.angleBetween(tPointToRBPoint, terrainEdge);
                         minDist = Math.abs(Math.min(minDist, tPointToRBPoint.mag() * (float)Math.sin(angleToEdge)));
-                        minDist += 0.1f;
+                        minDist += 0.1f; // Make sure there's no collisions after
 
                         // Apply rebounding force //
-                        float currentVelMag = a.getLinearVelocity().mag() * 0.8f;
+                        float currentVelMag = a.getLinearMomentum().mag() * 0.5f;
 
-                        a.applyForce(Vector2D.mult(terra.getNormals().get(i), currentVelMag), Vector2D.sub(point, a.getPos()));
+                        
 
                         // Apply friction force //
 
@@ -302,20 +300,11 @@ public class CollisionDetector {
                                 ))
                         );
 
-                        edgeParallel.mult(
-                            new Vector2D(
-                                -Math.signum(pointVel.getX()),
-                                -Math.signum(pointVel.getY())
-                                )
-                        );
+                        // Get direction that points are moving in
 
-                        float frictionMultiplier = Math.min(
-                            Math.abs(Vector2D.angleBetween(pointVel, edgeParallel)), 
-                            Math.abs(Vector2D.angleBetween(pointVel, Vector2D.mult(edgeParallel, -1f)))
-                            );
-
-
-                        a.applyForce(Vector2D.mult(edgeParallel, 1f), Vector2D.sub(point, a.getPos()));
+                        edgeParallel.mult(Vector2D.mult(a.getLinearVelocity(), -1f));
+                        
+                        a.applyForce(Vector2D.mult(terra.getNormals().get(i), currentVelMag), Vector2D.sub(point, a.getPos()));
                     }
                 }
             }

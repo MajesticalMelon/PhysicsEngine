@@ -10,7 +10,7 @@ public class RigidBody {
     // Initial variables
     private float width, height, mass;
     private ArrayList<Vector2D> points = new ArrayList<>();
-    private ArrayList<Vector2D> prevPoints = new ArrayList<>();
+    private ArrayList<Vector2D> pointVels = new ArrayList<>();
     private ArrayList<Vector2D> edges = new ArrayList<>();
     private BodyType type;
 
@@ -60,8 +60,6 @@ public class RigidBody {
         points.add(new Vector2D(maxX, maxY));
         points.add(new Vector2D(minX, maxY));
 
-        prevPoints.addAll(points);
-
         for (int i = 0; i < points.size(); i++) {
             edges.add(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
         }
@@ -69,9 +67,6 @@ public class RigidBody {
 
     public void update() {
         if (this.type != BodyType.Static) {
-            // Save previous posiiton of points
-            this.prevPoints.clear();
-            this.prevPoints.addAll(points);
 
             this.linAcc.add(gravity);
 
@@ -84,7 +79,7 @@ public class RigidBody {
                 this.linVel.set(this.linVel.getX(), 0f);
             }
 
-            if (Math.abs(this.angVel) < 0.001f) {
+            if (Math.abs(this.angVel) < 0.001f && Math.abs(this.rotation) < 0.001f) {
                 this.angVel = 0f;
             }
 
@@ -94,6 +89,7 @@ public class RigidBody {
 
             // Update angle
             this.rotation += this.angVel;
+            this.rotation %= 2f * Math.PI;
             this.angVel += this.angAcc;
 
             movePoints();
@@ -106,8 +102,6 @@ public class RigidBody {
             this.linAcc = new Vector2D(0, 0);
             this.angAcc = 0;
             this.pointOfRotation.set(this.pos);
-
-            System.out.println(points.get(0).getX() + ", " + prevPoints.get(0).getX());
         }
     }
 
@@ -126,7 +120,10 @@ public class RigidBody {
     }
 
     private void movePoints() {
+        this.pointVels.clear();
         for (Vector2D v : points) {
+            Vector2D pointCopy = new Vector2D(v.getX(), v.getY());
+
             v.sub(pointOfRotation);
             float rotatedX = (float) (v.getX() * Math.cos(this.getAngularVelocity())
                     - v.getY() * Math.sin(this.getAngularVelocity()));
@@ -135,6 +132,8 @@ public class RigidBody {
             v.set(rotatedX, rotatedY);
             v.add(pointOfRotation);
             v.add(this.getLinearVelocity());
+
+            this.pointVels.add(Vector2D.sub(v, pointCopy));
         }
     }
 
@@ -277,13 +276,13 @@ public class RigidBody {
     public Vector2D getForce() {
         return this.force;
     }
-
-    public ArrayList<Vector2D> getPreviousPoints() {
-        return this.prevPoints;
-    }
-
+    
     public ArrayList<Vector2D> getPoints() {
         return this.points;
+    }
+
+    public ArrayList<Vector2D> getPointVelocities() {
+        return this.pointVels;
     }
 
     public Vector2D getMaxPoint() {
