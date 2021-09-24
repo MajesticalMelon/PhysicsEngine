@@ -15,7 +15,7 @@ public class RigidBody {
     private ArrayList<Vector2D> pointVels = new ArrayList<>();
     private ArrayList<Vector2D> edges = new ArrayList<>();
     private BodyType type;
-    private AffineTransform affineRotation;
+    private AffineTransform transform;
 
     // Linear variables
     private Vector2D pos;
@@ -43,7 +43,9 @@ public class RigidBody {
         this.height = h;
         this.mass = m;
         this.momentOfInertia = m * w * h;
-        this.affineRotation = AffineTransform.getRotateInstance(this.rotation, cx, cy);
+
+        this.transform = AffineTransform.getTranslateInstance(cx, cy);
+        this.transform.rotate(this.rotation, cx, cy);
 
         this.type = BodyType.Dynamic;
 
@@ -82,7 +84,8 @@ public class RigidBody {
             calculateEdges(); // Recalcualte the edges
 
             // Update transform
-            this.affineRotation = AffineTransform.getRotateInstance(this.rotation, this.pos.getX(), this.pos.getY());
+            this.transform = AffineTransform.getTranslateInstance(this.pos.getX(), this.pos.getY());
+            this.transform.rotate(this.rotation, this.pos.getX(), this.pos.getY());
 
             // Calculate the force on this object
             force = Vector2D.mult(this.linAcc, this.mass);
@@ -239,8 +242,8 @@ public class RigidBody {
     /**
      * @return The Affine Transformation containing this body's rotation
      */
-    public AffineTransform getAffineRotation() {
-        return affineRotation;
+    public AffineTransform getAffineTransform() {
+        return transform;
     }
 
     /**

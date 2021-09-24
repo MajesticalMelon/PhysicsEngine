@@ -3,10 +3,14 @@ package Display;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -20,6 +24,8 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
     public Timer gameTimer = new Timer(1000/144, this);
     private int delay = 0;
+
+    Image image = null;
 
     CollisionDetector CD;
 
@@ -59,6 +65,12 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         CD = new CollisionDetector(this.shapes, this.terrains);
 
         gameTimer.start();
+
+        try {
+            image = ImageIO.read(new File("Images/WoodSquare.png"));
+        } catch (IOException ex) {
+            System.out.println("NOOOOOO");
+        } 
     }
 
     @Override
@@ -71,7 +83,18 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     private void draw(Graphics2D g2) {
         for (RigidBody body : shapes) {
             g2.setColor(Color.WHITE);
-            g2.draw(body.getPolygon());
+
+            // Draw images
+            g2.rotate(body.getAngle(), body.getPos().getX(), body.getPos().getY());
+            g2.drawImage(
+                image, 
+                (int)(body.getPos().getX() - body.getWidth() / 2f), 
+                (int)(body.getPos().getY() - body.getHeight() / 2f), 
+                (int)body.getWidth(), 
+                (int)body.getHeight(), 
+                null
+            );
+            g2.rotate(-body.getAngle(), body.getPos().getX(), body.getPos().getY());
         }
 
         // Draw the ground
