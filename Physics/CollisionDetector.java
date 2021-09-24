@@ -2,8 +2,6 @@ package Physics;
 
 import java.util.ArrayList;
 
-import javax.swing.RowFilter;
-
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
     ArrayList<Terrain> terrains = new ArrayList<>();
@@ -267,7 +265,6 @@ public class CollisionDetector {
         // Check if any point of the body is below the terrain
         for (int i = terrainLeft; i < terrainRight; i++) {
             Vector2D terrainPoint = terra.getTerrain().get(i);
-            Vector2D nextTerrainPoint = terra.getTerrain().get((i + 1) % terra.getTerrain().size());
             Vector2D terrainEdge = terra.getEdges().get(i);
 
             float minDist = Float.POSITIVE_INFINITY;
