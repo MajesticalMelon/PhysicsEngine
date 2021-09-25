@@ -21,26 +21,30 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     public ArrayList<RigidBody> shapes = new ArrayList<>();
     public ArrayList<Terrain> terrains = new ArrayList<>();
 
-    public Timer gameTimer = new Timer(1000/144, this);
+    public static float timeStep = 1000f / 144f;
+    public Timer gameTimer = new Timer((int)timeStep, this);
     private int delay = 0;
 
-    Image image = null;
+    private Image image = null;
 
-    CollisionDetector CD;
+    private CollisionDetector CD;
 
-    RigidBody square = new RigidBody(300, 400, 50, 50, 10);
-    RigidBody rectangle = new RigidBody(670, 350, 100, 200, 10);
-    RigidBody box = new RigidBody(150, 500, 236, 185, 1);
+    private RigidBody square = new RigidBody(300, 400, 50, 50, 10);
+    private RigidBody rectangle = new RigidBody(670, 350, 100, 200, 10);
+    private RigidBody box = new RigidBody(150, 500, 236, 185, 1);
 
-    RigidBody player = new RigidBody(0, 0, 25, 25, 50);
+    private RigidBody player = new RigidBody(0, 0, 25, 25, 50);
 
-    Terrain ground = new Terrain();
+    private Terrain ground = new Terrain();
 
     public Canvas() {
         setBackground(new Color(50, 50, 50));
 
+        // Create a static, unmovable rigidbody
         box.setType(BodyType.Static);
 
+        // Add in the rest of the rigidbodies and
+        // save ina list
         shapes.add(square);
         shapes.add(rectangle);
         shapes.add(box);
@@ -63,8 +67,10 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
         CD = new CollisionDetector(this.shapes, this.terrains);
 
+        // Start the timer for the game loop
         gameTimer.start();
 
+        // Lood in images
         try {
             image = ImageIO.read(new File("Images/WoodSquare.png"));
         } catch (IOException ex) {
@@ -72,6 +78,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         } 
     }
 
+    // Main draw loop
     @Override
     public void paint(Graphics g) {
         super.paint(g);
@@ -80,27 +87,32 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     }
 
     private void draw(Graphics2D g2) {
-        for (RigidBody body : shapes) {
-            g2.setColor(Color.WHITE);
+        // For anything tht isn't textured, draw white
+        g2.setColor(Color.WHITE);
 
-            // Draw images
-            g2.rotate(body.getAngle(), body.getPos().getX(), body.getPos().getY());
-            g2.drawImage(
-                image, 
-                (int)(body.getPos().getX() - body.getWidth() / 2f), 
-                (int)(body.getPos().getY() - body.getHeight() / 2f), 
-                (int)body.getWidth(), 
-                (int)body.getHeight(), 
-                null
-            );
-            g2.rotate(-body.getAngle(), body.getPos().getX(), body.getPos().getY());
+        // Draw all rigidbodies
+        for (RigidBody body : shapes) {
+            g2.draw(body.getPolygon());
+
+            // Draw images - Make sure to rotate
+            // g2.rotate(body.getAngle(), body.getPos().getX(), body.getPos().getY());
+            // g2.drawImage(
+            //     image, 
+            //     (int)(body.getPos().getX() - body.getWidth() / 2f), 
+            //     (int)(body.getPos().getY() - body.getHeight() / 2f), 
+            //     (int)body.getWidth(), 
+            //     (int)body.getHeight(), 
+            //     null
+            // );
+            // g2.rotate(-body.getAngle(), body.getPos().getX(), body.getPos().getY());
         }
 
         // Draw the ground
         ground.draw(g2);
-        ground.drawNormals(g2);
+        ground.drawNormals(g2); // Debugging
     }
 
+    // Get keyboard input from the user
     @Override
     public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
@@ -122,20 +134,25 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    // Main game loop
     @Override
     public void actionPerformed(ActionEvent e) {
         delay++;
         if (delay > 100) {
+            // Detect possible collisions
             CD.detectCollision(this.shapes);
 
+            // Update all rigidbodies
             for (RigidBody body : shapes) {
                 body.update();
             }
         }
 
+        // Draws to screen
         repaint();
     }
 
+    // Unused keyboard methods
     @Override
     public void keyTyped(KeyEvent e) {}
 

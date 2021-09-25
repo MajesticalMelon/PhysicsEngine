@@ -52,6 +52,7 @@ public class CollisionDetector {
     }
 
     public void detectCollision(ArrayList<RigidBody> s) {
+        // Sort each rigidbody's min and max X positions
         ArrayList<Vector2D> posX = new ArrayList<>();
         for (int i = 0; i < s.size(); i++) {
             RigidBody body = s.get(i);
@@ -64,6 +65,8 @@ public class CollisionDetector {
 
         sort(posX, 0, posX.size() - 1);
 
+        // Loop through the sorted X pos's and check
+        //  if 2 consecutive points are the same
         for (int i = 0; i < posX.size() - 1; i++) {
             if ((int) posX.get(i).getY() != (int) posX.get(i + 1).getY()) {
 
@@ -72,23 +75,21 @@ public class CollisionDetector {
 
                 // Detect and resolve collisions between two bodies
                 SAT(a, b);
-
-                // Detect and resolve terrain collisions
-
             }
         }
 
+        // Check every rigidbody against every terrain
         for (Terrain terra : terrains) {
             for (RigidBody a : s) {
-                terrainCollision(a, terra);
+                // Detect and resolve collisions between body and terrain
+                a.setCollisionState(terrainCollision(a, terra));
             }
         }
     }
 
     // Implementation of the Seperated Axis Theorem
     // TODO: Find normal of collision edge for applying forces
-    private void SAT(RigidBody a, RigidBody b) {
-        Vector2D perpLine;
+    private boolean SAT(RigidBody a, RigidBody b) {
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
 
@@ -99,16 +100,12 @@ public class CollisionDetector {
 
         // Get the normals for a
         for (int i = 0; i < a.getEdges().size(); i++) {
-            perpLine = new Vector2D(-a.getEdges().get(i).getY(), a.getEdges().get(i).getX());
-
-            perpStack.add(Vector2D.norm(perpLine));
+            perpStack.add(a.getEdges().get(i).normal1());
         }
 
         // Get the normals for b
         for (int i = 0; i < b.getEdges().size(); i++) {
-            perpLine = new Vector2D(-b.getEdges().get(i).getY(), b.getEdges().get(i).getX());
-
-            perpStack.add(Vector2D.norm(perpLine));
+            perpStack.add(b.getEdges().get(i).normal1());
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
@@ -120,9 +117,9 @@ public class CollisionDetector {
             float bMax = Float.NEGATIVE_INFINITY;
 
             // Calculate dot products between polygon's points and their perpLines
-            // Describes the location of the polyogn's points along an infinite
+            // which describes the location of the polyogn's points along an infinite
             // perpendicular line
-            //// Projects each polygon
+            //// Projects each polygon ////
             for (int j = 0; j < a.getPoints().size(); j++) {
                 dot = Vector2D.dot(perpStack.get(i), a.getPoints().get(j));
 
@@ -173,7 +170,7 @@ public class CollisionDetector {
 
                 continue;
             } else {
-                return;
+                return false;
             }
         }
 
@@ -227,6 +224,8 @@ public class CollisionDetector {
             a.addPos(mtv);
         }
 
+        // Apply force in direction of edge normal
+
         Vector2D force = Vector2D.mult(Vector2D.add(a.getLinearVelocity(), b.getLinearVelocity()),
                 (a.getMass() + b.getMass()) / 2f);
 
@@ -234,10 +233,12 @@ public class CollisionDetector {
 
         force.mult(-1f);
         b.applyForce(force, Vector2D.sub(collisionPoint, b.getPos()));
+
+        return true;
     }
 
     // Collide with the terrain
-    private void terrainCollision(RigidBody a, Terrain terra) {
+    private boolean terrainCollision(RigidBody a, Terrain terra) {
         // Find the the terrain points to the left and right of the body
         // Indices of the closest terrain points outside of the body
         int terrainLeft = 0;
@@ -262,7 +263,10 @@ public class CollisionDetector {
             }
         }
 
-        // Check if any point of the body is below the terrain
+        boolean collision = false;
+
+        // Check if any point of the body is below the
+        // previously calculated terrain points
         for (int i = terrainLeft; i < terrainRight; i++) {
             Vector2D terrainPoint = terra.getTerrain().get(i);
             Vector2D terrainEdge = terra.getEdges().get(i);
@@ -270,6 +274,7 @@ public class CollisionDetector {
             float minDist = Float.POSITIVE_INFINITY;
 
             // Loop through all points in the body
+            // and check for collision
             for (Vector2D point : a.getPoints()) {
                 Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
 
@@ -281,8 +286,8 @@ public class CollisionDetector {
                     minDist = Math.abs(Math.min(minDist, tPointToRBPoint.mag() * (float) Math.sin(angleToEdge)));
 
                     // Apply rebounding force //
-                    float forceScalar = 2 * RigidBody.GRAVITY.mag() * a.getMass() + (minDist * a.getMass());
-
+                    float forceScalar = 2 * RigidBody.GRAVITY.mag() * a.getMass() * (minDist * a.getMass()) * a.getLinearVelocity().mag();
+                    //                     Counteract gravity                        scale force depending on how far it gets
                     a.applyForce(Vector2D.mult(terra.getNormals().get(i), forceScalar),
                             Vector2D.sub(point, a.getPos()));
                 }
@@ -291,7 +296,10 @@ public class CollisionDetector {
             // Adjust position if there was a collision
             if (minDist < Float.POSITIVE_INFINITY) {
                 a.addPos(Vector2D.mult(terra.getNormals().get(i), minDist));
+                collision = true;
             }
         }
+
+        return collision;
     }
 }

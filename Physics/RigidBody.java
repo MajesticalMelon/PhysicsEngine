@@ -16,6 +16,7 @@ public class RigidBody {
     private ArrayList<Vector2D> edges = new ArrayList<>();
     private BodyType type;
     private AffineTransform transform;
+    private boolean isColliding;
 
     // Linear variables
     private Vector2D pos;
@@ -47,6 +48,7 @@ public class RigidBody {
         this.transform = AffineTransform.getTranslateInstance(cx, cy);
         this.transform.rotate(this.rotation, cx, cy);
 
+        this.isColliding = false;
         this.type = BodyType.Dynamic;
 
         maxX = cx + (w / 2);
@@ -69,6 +71,25 @@ public class RigidBody {
         if (this.type != BodyType.Static) {
             // Apply gravity
             this.linAcc.add(Vector2D.mult(RigidBody.GRAVITY, this.mass));
+
+            // Apply friction when colliding
+            if (isColliding) {
+                this.linVel.add(Vector2D.mult(this.linVel, -0.01f));
+                this.angVel += this.angVel * -0.01f;
+
+                // During collision stop a slow body
+                if (Math.abs(this.linVel.getX()) < 0.001f) {
+                    this.linVel.set(0f, this.linVel.getY());
+                }
+
+                if (Math.abs(this.linVel.getY()) < 0.001f) {
+                    this.linVel.set(this.linVel.getX(), 0f);
+                }
+
+                if (Math.abs(this.angVel) < 0.001f) {
+                    this.angVel = 0f;
+                }
+            }
 
             // Update position
             this.pos.add(this.linVel);
@@ -206,6 +227,10 @@ public class RigidBody {
     public void setAngularAcceleration(float w) {
         this.angVel = w;
     }
+
+    public void setCollisionState(boolean collision) {
+        this.isColliding = collision;
+    } 
 
     public void setType(BodyType bodyType) {
         this.type = bodyType;
