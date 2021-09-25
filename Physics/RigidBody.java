@@ -163,7 +163,7 @@ public class RigidBody {
     }
 
     private void calculateEdges() {
-        for (int i = 0; i < points.size() - 1; i++) {
+        for (int i = 0; i < points.size(); i++) {
             edges.get(i).set(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
         }
     }

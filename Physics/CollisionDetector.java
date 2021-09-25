@@ -100,12 +100,12 @@ public class CollisionDetector {
 
         // Get the normals for a
         for (int i = 0; i < a.getEdges().size(); i++) {
-            perpStack.add(a.getEdges().get(i).normal1());
+            perpStack.add(a.getEdges().get(i).normal2());
         }
 
         // Get the normals for b
         for (int i = 0; i < b.getEdges().size(); i++) {
-            perpStack.add(b.getEdges().get(i).normal1());
+            perpStack.add(b.getEdges().get(i).normal2());
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
@@ -214,25 +214,45 @@ public class CollisionDetector {
 
         // Calculate the Minimum Translation Vector
         Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
+        mtv.set(Math.abs(mtv.getX()), Math.abs(mtv.getY()));
 
-        // Move different objects depending on mass
-        if (b.getMass() > a.getMass() && a.getType() == BodyType.Dynamic) {
-            a.addPos(mtv);
-        } else if (b.getType() == BodyType.Dynamic) {
-            b.addPos(Vector2D.mult(mtv, -1));
-        } else if (a.getType() == BodyType.Dynamic) {
-            a.addPos(mtv);
+        // Get direction of translation for both objects
+        Vector2D collisionToA = Vector2D.sub(a.getPos(), collisionPoint);
+
+        Vector2D aDir = new Vector2D(
+            Math.signum(collisionToA.getX()),
+            Math.signum(collisionToA.getY())
+            );
+        
+        Vector2D collisionToB = Vector2D.sub(b.getPos(), collisionPoint);
+        
+        Vector2D bDir = new Vector2D(
+            Math.signum(collisionToB.getX()),
+            Math.signum(collisionToB.getY())
+            );
+
+        // Move different objects depending on velocity
+        if (a.getLinearVelocity().mag() != 0 && b.getLinearVelocity().mag() != 0) {
+            Vector2D halfMTV = Vector2D.div(mtv, 2f);
+            
+            a.addPos(Vector2D.mult(halfMTV, aDir));
+            b.addPos(Vector2D.mult(halfMTV, bDir));
+        } else if (a.getLinearVelocity().mag() == 0 ) {
+            a.addPos(Vector2D.mult(mtv, aDir));
+        } else {
+            b.addPos(Vector2D.mult(mtv, bDir));
         }
+        
 
         // Apply force in direction of edge normal
 
-        Vector2D force = Vector2D.mult(Vector2D.add(a.getLinearVelocity(), b.getLinearVelocity()),
-                (a.getMass() + b.getMass()) / 2f);
+        // Vector2D force = Vector2D.mult(Vector2D.add(a.getLinearVelocity(), b.getLinearVelocity()),
+        //         (a.getMass() + b.getMass()) / 2f);
 
-        a.applyForce(force, Vector2D.sub(collisionPoint, a.getPos()));
+        // a.applyForce(force, Vector2D.sub(collisionPoint, a.getPos()));
 
-        force.mult(-1f);
-        b.applyForce(force, Vector2D.sub(collisionPoint, b.getPos()));
+        // force.mult(-1f);
+        // b.applyForce(force, Vector2D.sub(collisionPoint, b.getPos()));
 
         return true;
     }
