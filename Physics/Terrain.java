@@ -2,15 +2,19 @@ package Physics;
 
 import java.util.ArrayList;
 
+import Display.Run;
+
 import java.awt.Graphics2D;
 
 public class Terrain {
     private ArrayList<Vector2D> terrainPoints;
     private ArrayList<Vector2D> terrainEdges;
     private ArrayList<Vector2D> terrainNormals;
+    private float baseHeight;
 
-    public Terrain(ArrayList<Vector2D> points) {
+    public Terrain(ArrayList<Vector2D> points, float base) {
         terrainPoints = points;
+        this.baseHeight = base;
 
         // Create edges
         terrainEdges = new ArrayList<>();
@@ -26,7 +30,7 @@ public class Terrain {
     }
 
     public Terrain() {
-        this(new ArrayList<>());
+        this(new ArrayList<>(), Run.HEIGHT);
     }
 
     public ArrayList<Vector2D> getTerrain() {
@@ -34,13 +38,15 @@ public class Terrain {
     }
 
     public void addPoint(Vector2D v) {
+        Vector2D adjustedPoint = new Vector2D(v.getX(), baseHeight - v.getY());
+
         if (terrainPoints.size() != 0) {
-            Vector2D edge = Vector2D.sub(v, terrainPoints.get(terrainPoints.size() - 1));
+            Vector2D edge = Vector2D.sub(adjustedPoint, terrainPoints.get(terrainPoints.size() - 1));
             terrainEdges.add(edge);
             terrainNormals.add(edge.normal2());
         }
-        
-        terrainPoints.add(v);
+
+        terrainPoints.add(adjustedPoint);
     }
 
     public void draw(Graphics2D g2) {

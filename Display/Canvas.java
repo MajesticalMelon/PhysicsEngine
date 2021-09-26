@@ -2,6 +2,7 @@ package Display;
 
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Vector;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Graphics;
@@ -48,20 +49,21 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         shapes.add(square);
         shapes.add(rectangle);
         shapes.add(box);
-        shapes.add(player);
+        //shapes.add(player);
 
         shapes.get(0).applyForce(new Vector2D(10, 0), new Vector2D(0, -5));
+        rectangle.applyForce(new Vector2D(30, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
 
         // Create a terrain
-        ground.addPoint(new Vector2D(0, Run.HEIGHT - 200));
-        ground.addPoint(new Vector2D(0, Run.HEIGHT - 50));
-        ground.addPoint(new Vector2D(250, Run.HEIGHT - 50));
-        ground.addPoint(new Vector2D(500, Run.HEIGHT - 200));
-        ground.addPoint(new Vector2D(800, Run.HEIGHT - 200));
-        ground.addPoint(new Vector2D(800, Run.HEIGHT - 300));
-        ground.addPoint(new Vector2D(1000, Run.HEIGHT - 300));
+        ground.addPoint(new Vector2D(0, 200));
+        ground.addPoint(new Vector2D(0, 50));
+        ground.addPoint(new Vector2D(250, 50));
+        ground.addPoint(new Vector2D(500, 200));
+        ground.addPoint(new Vector2D(800, 200));
+        ground.addPoint(new Vector2D(810, 300));
+        ground.addPoint(new Vector2D(1000, 300));
 
         terrains.add(ground);
 

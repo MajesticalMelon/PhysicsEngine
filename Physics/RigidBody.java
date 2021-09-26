@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class RigidBody {
     // Gravity
-    public static Vector2D GRAVITY = new Vector2D(0, 0.00f);
+    public static Vector2D GRAVITY = new Vector2D(0, 0.009f);
 
     // Initial variables
     private float width, height, mass;
