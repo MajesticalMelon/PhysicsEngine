@@ -255,7 +255,7 @@ public class CollisionDetector {
     }
 
     // TODO: Fix terrain collision detection with vertical sections
-    // TODO: Possibly switch terrain to a height map system
+    // TODO: Possibly switch terrain to a height map system***
     // Collide with the terrain
     private boolean terrainCollision(RigidBody a, Terrain terra) {
         // Find the the terrain points to the left and right of the body
@@ -289,6 +289,7 @@ public class CollisionDetector {
         for (int i = terrainLeft; i < terrainRight; i++) {
             Vector2D terrainPoint = terra.getTerrain().get(i);
             Vector2D terrainEdge = terra.getEdges().get(i);
+            Vector2D terrainNormal = terra.getNormals().get(i);
 
             float minDist = Float.POSITIVE_INFINITY;
 
@@ -297,24 +298,25 @@ public class CollisionDetector {
             for (Vector2D point : a.getPoints()) {
                 Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
 
-                float angleToNormal = Vector2D.angleBetween(tPointToRBPoint, terra.getNormals().get(i));
+                float angleToNormal = Vector2D.angleBetween(tPointToRBPoint, terrainNormal);
 
                 if (Math.abs(angleToNormal) > Math.PI / 2 && Math.abs(angleToNormal) < 3f * Math.PI / 2f) {
                     // Calculate minimum distance
                     float angleToEdge = Vector2D.angleBetween(tPointToRBPoint, terrainEdge);
+                    
                     minDist = Math.abs(Math.min(minDist, tPointToRBPoint.mag() * (float) Math.sin(angleToEdge)));
 
                     // Apply rebounding force //
                     float forceScalar = 2 * RigidBody.GRAVITY.mag() * a.getLinearMomentum().mag() * (minDist * a.getMass());
                     //                     Counteract gravity                        scale force depending on how far it gets
-                    a.applyForce(Vector2D.mult(terra.getNormals().get(i), forceScalar),
-                            Vector2D.sub(point, a.getPos()));
+
+                    a.applyForce(Vector2D.mult(terrainNormal, forceScalar), Vector2D.sub(point, a.getPos()));
                 }
             }
 
             // Adjust position if there was a collision
             if (minDist < Float.POSITIVE_INFINITY) {
-                a.addPos(Vector2D.mult(terra.getNormals().get(i), minDist));
+                a.addPos(Vector2D.mult(terrainNormal, minDist));
                 collision = true;
             }
         }
