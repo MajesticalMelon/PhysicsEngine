@@ -88,7 +88,6 @@ public class CollisionDetector {
     }
 
     // Implementation of the Seperated Axis Theorem
-    // TODO: Find normal of collision edge for applying forces
     private boolean SAT(RigidBody a, RigidBody b) {
         float dot;
         ArrayList<Vector2D> perpStack = new ArrayList<>();
@@ -179,36 +178,30 @@ public class CollisionDetector {
 
         Vector2D collisionPoint = new Vector2D(0, 0); // default
         float smallestAngle = Float.POSITIVE_INFINITY;
+        boolean aPoint = false; // Determines whether collision point came from A or B
 
         // Find a collision point
         for (Vector2D point : a.getPoints()) {
             // Get the angle between the vector pointing from
             // body a to body b and the vector that describes point
-            float testAngle = Math.abs(Vector2D.angleBetween(aToB, point));
-
-            // Get an angle that is less than 180 degrees
-            while (testAngle > Math.PI) {
-                testAngle -= Math.PI;
-            }
+            float testAngle = Math.abs(Vector2D.angleBetween(aToB, point)) % (float)Math.PI;
 
             // Compare the calulated angle to the current smallest angle
             if (testAngle < smallestAngle) {
                 smallestAngle = testAngle;
                 collisionPoint = point;
+                aPoint = true;
             }
         }
 
         // Find a collision point
         for (Vector2D point : b.getPoints()) {
-            float testAngle = Math.abs(Vector2D.angleBetween(bToA, point));
-
-            while (testAngle > Math.PI) {
-                testAngle -= Math.PI;
-            }
+            float testAngle = Math.abs(Vector2D.angleBetween(bToA, point)) % (float)Math.PI;
 
             if (testAngle < smallestAngle) {
                 smallestAngle = testAngle;
                 collisionPoint = point;
+                aPoint = false;
             }
         }
 
@@ -227,21 +220,36 @@ public class CollisionDetector {
             Math.signum(aToB.getY())
             );
         
+        // Apply translation
         a.addPos(Vector2D.mult(mtv, aDir));
         b.addPos(Vector2D.mult(mtv, bDir));
 
-        a.setLinearAcceleration(new Vector2D(0f, 0f));
-        b.setLinearAcceleration(new Vector2D(0f, 0f));
+        // Get edge normal
+        ArrayList<Vector2D> edges = aPoint ? b.getEdges() : a.getEdges();
+        Vector2D collisionPointer = aPoint ? Vector2D.sub(collisionPoint, b.getPos()) : Vector2D.sub(collisionPoint, a.getPos());
 
-        // Apply force in direction of edge normal
+        smallestAngle = Float.POSITIVE_INFINITY;
+        Vector2D normalEdge = new Vector2D(0f, 0f);
 
-        // Vector2D force = Vector2D.mult(Vector2D.add(a.getLinearVelocity(), b.getLinearVelocity()),
-        //         (a.getMass() + b.getMass()) / 2f);
+        // Check edge normals for which one points toward the collision point most
+        for (Vector2D edge : edges) {
+            float angle = Math.abs(Vector2D.angleBetween(collisionPointer, edge.normal1())) % (float)Math.PI;
 
-        // a.applyForce(force, Vector2D.sub(collisionPoint, a.getPos()));
+            if (angle < smallestAngle) {
+                smallestAngle = angle;
+                normalEdge = edge.normal1();
+            }
+        }
 
-        // force.mult(-1f);
-        // b.applyForce(force, Vector2D.sub(collisionPoint, b.getPos()));
+        float forceScalar = a.getLinearVelocity().mag() * (mtv.mag() * a.getMass());
+
+        a.setLinearVelocity(new Vector2D(0f, 0f));
+        b.setLinearVelocity(new Vector2D(0f, 0f));
+
+        normalEdge.mult(forceScalar);
+
+        a.applyForce(normalEdge, Vector2D.sub(collisionPoint, a.getPos()));
+        b.applyForce(Vector2D.mult(normalEdge, -1f), Vector2D.sub(collisionPoint, b.getPos()));
 
         return true;
     }

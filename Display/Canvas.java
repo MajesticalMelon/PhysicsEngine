@@ -50,7 +50,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         shapes.add(box);
         shapes.add(player);
 
-        shapes.get(0).applyForce(new Vector2D(5, 0), new Vector2D(0, -5));
+        shapes.get(0).applyForce(new Vector2D(10, 0), new Vector2D(0, -5));
         //shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
 
@@ -106,6 +106,8 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
             // );
             // g2.rotate(-body.getAngle(), body.getPos().getX(), body.getPos().getY());
         }
+
+        
 
         // Draw the ground
         ground.draw(g2);
