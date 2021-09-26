@@ -100,12 +100,12 @@ public class CollisionDetector {
 
         // Get the normals for a
         for (int i = 0; i < a.getEdges().size(); i++) {
-            perpStack.add(a.getEdges().get(i).normal2());
+            perpStack.add(a.getEdges().get(i).normal1());
         }
 
         // Get the normals for b
         for (int i = 0; i < b.getEdges().size(); i++) {
-            perpStack.add(b.getEdges().get(i).normal2());
+            perpStack.add(b.getEdges().get(i).normal1());
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
@@ -217,32 +217,21 @@ public class CollisionDetector {
         mtv.set(Math.abs(mtv.getX()), Math.abs(mtv.getY()));
 
         // Get direction of translation for both objects
-        Vector2D collisionToA = Vector2D.sub(a.getPos(), collisionPoint);
-
         Vector2D aDir = new Vector2D(
-            Math.signum(collisionToA.getX()),
-            Math.signum(collisionToA.getY())
-            );
-        
-        Vector2D collisionToB = Vector2D.sub(b.getPos(), collisionPoint);
-        
-        Vector2D bDir = new Vector2D(
-            Math.signum(collisionToB.getX()),
-            Math.signum(collisionToB.getY())
+            Math.signum(bToA.getX()),
+            Math.signum(bToA.getY())
             );
 
-        // Move different objects depending on velocity
-        if (a.getLinearVelocity().mag() != 0 && b.getLinearVelocity().mag() != 0) {
-            Vector2D halfMTV = Vector2D.div(mtv, 2f);
-            
-            a.addPos(Vector2D.mult(halfMTV, aDir));
-            b.addPos(Vector2D.mult(halfMTV, bDir));
-        } else if (a.getLinearVelocity().mag() == 0 ) {
-            a.addPos(Vector2D.mult(mtv, aDir));
-        } else {
-            b.addPos(Vector2D.mult(mtv, bDir));
-        }
+        Vector2D bDir = new Vector2D(
+            Math.signum(aToB.getX()),
+            Math.signum(aToB.getY())
+            );
         
+        a.addPos(Vector2D.mult(mtv, aDir));
+        b.addPos(Vector2D.mult(mtv, bDir));
+
+        a.setLinearAcceleration(new Vector2D(0f, 0f));
+        b.setLinearAcceleration(new Vector2D(0f, 0f));
 
         // Apply force in direction of edge normal
 
@@ -257,6 +246,8 @@ public class CollisionDetector {
         return true;
     }
 
+    // TODO: Fix terrain collision detection with vertical sections
+    // TODO: Possibly switch terrain to a height map system
     // Collide with the terrain
     private boolean terrainCollision(RigidBody a, Terrain terra) {
         // Find the the terrain points to the left and right of the body
@@ -306,7 +297,7 @@ public class CollisionDetector {
                     minDist = Math.abs(Math.min(minDist, tPointToRBPoint.mag() * (float) Math.sin(angleToEdge)));
 
                     // Apply rebounding force //
-                    float forceScalar = 2 * RigidBody.GRAVITY.mag() * a.getMass() * (minDist * a.getMass()) * a.getLinearVelocity().mag();
+                    float forceScalar = 2 * RigidBody.GRAVITY.mag() * a.getLinearMomentum().mag() * (minDist * a.getMass());
                     //                     Counteract gravity                        scale force depending on how far it gets
                     a.applyForce(Vector2D.mult(terra.getNormals().get(i), forceScalar),
                             Vector2D.sub(point, a.getPos()));

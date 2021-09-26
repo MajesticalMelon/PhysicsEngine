@@ -12,7 +12,6 @@ public class RigidBody {
     // Initial variables
     private float width, height, mass;
     private ArrayList<Vector2D> points = new ArrayList<>();
-    private ArrayList<Vector2D> pointVels = new ArrayList<>();
     private ArrayList<Vector2D> edges = new ArrayList<>();
     private BodyType type;
     private AffineTransform transform;
@@ -135,10 +134,7 @@ public class RigidBody {
     }
 
     private void movePoints() {
-        this.pointVels.clear();
         for (Vector2D v : points) {
-            Vector2D pointCopy = new Vector2D(v.getX(), v.getY());
-
             v.sub(this.pos);
             float rotatedX = (float) (v.getX() * Math.cos(this.getAngularVelocity())
                     - v.getY() * Math.sin(this.getAngularVelocity()));
@@ -147,8 +143,6 @@ public class RigidBody {
             v.set(rotatedX, rotatedY);
             v.add(this.pos);
             v.add(this.getLinearVelocity());
-
-            this.pointVels.add(Vector2D.sub(v, pointCopy));
         }
     }
 
@@ -305,10 +299,6 @@ public class RigidBody {
     
     public ArrayList<Vector2D> getPoints() {
         return this.points;
-    }
-
-    public ArrayList<Vector2D> getPointVelocities() {
-        return this.pointVels;
     }
 
     public Vector2D getMaxPoint() {
