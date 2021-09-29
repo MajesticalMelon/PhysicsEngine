@@ -118,6 +118,10 @@ public class Vector2D {
         return (float) Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
+    public float magSq() {
+        return mag() * mag();
+    }
+
     //Dot Product
     public float dot(Vector2D v) {
         return this.x * v.x + this.y * v.y;
@@ -162,6 +166,26 @@ public class Vector2D {
 
     public Vector2D normal2() {
         return norm(new Vector2D(y, -x));
+    }
+
+    /**
+     * 
+     * @param from
+     * @param to
+     * @return The projection scalar of from onto to
+     */
+    public static float scalarProject(Vector2D from, Vector2D to) {
+        return Vector2D.dot(to, from) / to.mag();
+    }
+
+    /**
+     * 
+     * @param from
+     * @param to
+     * @return The projection vector of from onto to
+     */
+    public static Vector2D vectorProject(Vector2D from, Vector2D to) {
+        return Vector2D.mult(to, Vector2D.dot(to, from) / to.magSq());
     }
 
     public float getX() {

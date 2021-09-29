@@ -1,11 +1,10 @@
 package Physics;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Formatter.BigDecimalLayoutForm;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
+    public Vector2D min = new Vector2D(0, 0);
 
     public CollisionDetector(ArrayList<RigidBody> s) {
         bodies = s;
@@ -88,6 +87,7 @@ public class CollisionDetector {
 
         float overlap = Float.MAX_VALUE;
         Vector2D smallestAxis = new Vector2D(0, 0);
+        RigidBody axisBody = null;
 
         // Calculate vectors perpendicular to each polygon's edges
 
@@ -161,6 +161,12 @@ public class CollisionDetector {
                     }
                 }
 
+                if (i < 4) {
+                    axisBody = a;
+                } else {
+                    axisBody = b;
+                }
+
                 continue;
             } else {
                 return false;
@@ -168,9 +174,35 @@ public class CollisionDetector {
         }
 
         // Calculate the Minimum Translation Vector
-        Vector2D mtvA = Vector2D.mult(smallestAxis, overlap);
-        Vector2D mtvB = Vector2D.mult(smallestAxis, -overlap);
+        RigidBody oppBody;
+        Vector2D mtvA;
+        Vector2D mtvB;
+
+        if (axisBody == b) {
+            oppBody = a;
+            mtvA = Vector2D.mult(smallestAxis, overlap);
+            mtvB = Vector2D.mult(smallestAxis, -overlap);
+        } else {
+            oppBody = b;
+            mtvA = Vector2D.mult(smallestAxis, -overlap);
+            mtvB = Vector2D.mult(smallestAxis, overlap);
+        }
         
+        // Find the collision point
+        float maxDist = Float.MIN_VALUE;
+        Vector2D collisionPoint = new Vector2D(0, 0);
+
+        // Project each point onto the axisBody's position vector
+        for (Vector2D point : oppBody.getPoints()) {
+            // The greatest scalar is closest to the axisBody
+            // and therefore the collision point
+            float projection = Vector2D.scalarProject(point, axisBody.getPos());
+
+            if (projection > maxDist) {
+                maxDist = projection;
+                collisionPoint = point;
+            }
+        }
 
         // Apply translation
         if (a.getType() == BodyType.Dynamic && b.getType() == BodyType.Dynamic) {
@@ -182,11 +214,13 @@ public class CollisionDetector {
             b.addPos(mtvB);
         }
 
-        // Apply forces
-        float forceScalar = a.getForce().mag() * a.getLinearVelocity().mag() * 0.8f;
+        
 
-        a.applyForce(Vector2D.mult(mtvA, forceScalar), new Vector2D(0, 0));
-        b.applyForce(Vector2D.mult(mtvB, forceScalar), new Vector2D(0, 0));
+        // Apply forces
+        float forceScalar = a.getLinearMomentum().mag();
+
+        a.applyForce(Vector2D.mult(mtvA, forceScalar), Vector2D.sub(collisionPoint, a.getPos()));
+        b.applyForce(Vector2D.mult(mtvB, forceScalar), Vector2D.sub(collisionPoint, b.getPos()));
 
         return true;
     }

@@ -16,6 +16,7 @@ public class RigidBody {
     private BodyType type;
     private AffineTransform transform;
     private boolean isColliding;
+    private float interiorAngle;
 
     // Linear variables
     private Vector2D pos;
@@ -64,6 +65,8 @@ public class RigidBody {
         for (int i = 0; i < points.size(); i++) {
             edges.add(Vector2D.sub(points.get((i + 1) % points.size()), points.get(i)));
         }
+
+        this.interiorAngle = 2 * (float)Math.PI / this.points.size();
     }
 
     public void update() {
@@ -82,9 +85,15 @@ public class RigidBody {
                     this.linVel.set(this.linVel.getX(), 0f);
                 }
 
-                if (Math.abs(this.angVel) < 0.001f) {
-                    this.angVel = 0f;
+                // Check if the angle is close to the polygon's interior angles
+                if (this.rotation % interiorAngle > interiorAngle - 0.0001f || this.rotation % interiorAngle < 0.0001f) {
+                    // Stop rotating at slow velocities
+                    if (Math.abs(this.angVel) < 0.001f) {
+                        this.angVel = 0f;
+                    }
                 }
+
+                
             }
 
             // Update position
@@ -204,6 +213,14 @@ public class RigidBody {
 
     public void setLinearVelocity(Vector2D v) {
         this.linVel = v;
+    }
+
+    public void setAngle(float angle) {
+        float tmp = this.angVel;
+        this.angVel = angle - this.rotation;
+        movePoints();
+        calculateEdges();
+        this.angVel = tmp;
     }
 
     public void setAngularVelocity(float w) {
