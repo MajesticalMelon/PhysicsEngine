@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class RigidBody {
     // Gravity
-    public static Vector2D GRAVITY = new Vector2D(0, 0.009f);
+    public static Vector2D GRAVITY = new Vector2D(0, 0.00f);
 
     // Initial variables
     private float width, height, mass;
@@ -220,6 +220,7 @@ public class RigidBody {
         this.angVel = angle - this.rotation;
         movePoints();
         calculateEdges();
+        this.rotation += this.angVel;
         this.angVel = tmp;
     }
 

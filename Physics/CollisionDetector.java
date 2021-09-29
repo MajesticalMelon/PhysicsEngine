@@ -93,12 +93,12 @@ public class CollisionDetector {
 
         // Get the normals for a
         for (int i = 0; i < a.getEdges().size(); i++) {
-            perpStack.add(a.getEdges().get(i).normal2());
+            perpStack.add(a.getEdges().get(i).normal1());
         }
 
         // Get the normals for b
         for (int i = 0; i < b.getEdges().size(); i++) {
-            perpStack.add(b.getEdges().get(i).normal2());
+            perpStack.add(b.getEdges().get(i).normal1());
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
@@ -217,7 +217,10 @@ public class CollisionDetector {
         
 
         // Apply forces
-        float forceScalar = a.getLinearMomentum().mag();
+        float forceScalar = (a.getLinearMomentum().mag() + b.getLinearMomentum().mag()) / (a.getMass() + b.getMass());
+
+        //a.setLinearVelocity(new Vector2D(0, 0));
+        //b.setLinearVelocity(new Vector2D(0, 0));
 
         a.applyForce(Vector2D.mult(mtvA, forceScalar), Vector2D.sub(collisionPoint, a.getPos()));
         b.applyForce(Vector2D.mult(mtvB, forceScalar), Vector2D.sub(collisionPoint, b.getPos()));
