@@ -68,9 +68,6 @@ public class RigidBody {
 
     public void update() {
         if (this.type != BodyType.Static) {
-            // Apply gravity
-            this.linAcc.add(Vector2D.mult(RigidBody.GRAVITY, this.mass));
-
             // Apply friction when colliding
             if (isColliding) {
                 this.linVel.add(Vector2D.mult(this.linVel, -0.01f));
@@ -116,6 +113,9 @@ public class RigidBody {
             // Reset accelerations
             this.linAcc = new Vector2D(0, 0);
             this.angAcc = 0;
+
+            // Apply gravity
+            this.linAcc.set(Vector2D.mult(RigidBody.GRAVITY, this.mass));
         }
     }
 
@@ -127,10 +127,6 @@ public class RigidBody {
 
         force.div(this.mass);
         this.linAcc.add(force);
-    }
-
-    public void collide(RigidBody j) {
-
     }
 
     private void movePoints() {

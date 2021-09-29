@@ -1,14 +1,14 @@
 package Physics;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Formatter.BigDecimalLayoutForm;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
-    ArrayList<Terrain> terrains = new ArrayList<>();
 
-    public CollisionDetector(ArrayList<RigidBody> s, ArrayList<Terrain> t) {
+    public CollisionDetector(ArrayList<RigidBody> s) {
         bodies = s;
-        terrains = t;
     }
 
     private int partition(ArrayList<Vector2D> arr, int low, int high) {
@@ -69,20 +69,14 @@ public class CollisionDetector {
         // if 2 consecutive points are the same
         for (int i = 0; i < posX.size() - 1; i++) {
             if ((int) posX.get(i).getY() != (int) posX.get(i + 1).getY()) {
-
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
-                // Detect and resolve collisions between two bodies
-                SAT(a, b);
-            }
-        }
-
-        // Check every rigidbody against every terrain
-        for (Terrain terra : terrains) {
-            for (RigidBody a : s) {
-                // Detect and resolve collisions between body and terrain
-                a.setCollisionState(terrainCollision(a, terra));
+                // Make sure at least one body is dynamic
+                if (a.getType() == BodyType.Dynamic || b.getType() == BodyType.Dynamic) {
+                    // Detect and resolve collisions between two bodies
+                    a.setCollisionState(SAT(a, b));
+                }
             }
         }
     }
@@ -99,12 +93,12 @@ public class CollisionDetector {
 
         // Get the normals for a
         for (int i = 0; i < a.getEdges().size(); i++) {
-            perpStack.add(a.getEdges().get(i).normal1());
+            perpStack.add(a.getEdges().get(i).normal2());
         }
 
         // Get the normals for b
         for (int i = 0; i < b.getEdges().size(); i++) {
-            perpStack.add(b.getEdges().get(i).normal1());
+            perpStack.add(b.getEdges().get(i).normal2());
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
@@ -173,153 +167,27 @@ public class CollisionDetector {
             }
         }
 
-        Vector2D aToB = Vector2D.sub(b.getPos(), a.getPos());
-        Vector2D bToA = Vector2D.sub(a.getPos(), b.getPos());
-
-        Vector2D collisionPoint = new Vector2D(0, 0); // default
-        float smallestAngle = Float.POSITIVE_INFINITY;
-        boolean aPoint = false; // Determines whether collision point came from A or B
-
-        // Find a collision point
-        for (Vector2D point : a.getPoints()) {
-            // Get the angle between the vector pointing from
-            // body a to body b and the vector that describes point
-            float testAngle = Math.abs(Vector2D.angleBetween(aToB, point)) % (float) Math.PI;
-
-            // Compare the calulated angle to the current smallest angle
-            if (testAngle < smallestAngle) {
-                smallestAngle = testAngle;
-                collisionPoint = point;
-                aPoint = true;
-            }
-        }
-
-        // Find a collision point
-        for (Vector2D point : b.getPoints()) {
-            float testAngle = Math.abs(Vector2D.angleBetween(bToA, point)) % (float) Math.PI;
-
-            if (testAngle < smallestAngle) {
-                smallestAngle = testAngle;
-                collisionPoint = point;
-                aPoint = false;
-            }
-        }
-
         // Calculate the Minimum Translation Vector
-        Vector2D mtv = Vector2D.mult(smallestAxis, overlap);
-        mtv.set(Math.abs(mtv.getX()), Math.abs(mtv.getY()));
-
-        // Get direction of translation for both objects
-        Vector2D aDir = new Vector2D(Math.signum(bToA.getX()), Math.signum(bToA.getY()));
-
-        Vector2D bDir = new Vector2D(Math.signum(aToB.getX()), Math.signum(aToB.getY()));
+        Vector2D mtvA = Vector2D.mult(smallestAxis, overlap);
+        Vector2D mtvB = Vector2D.mult(smallestAxis, -overlap);
+        
 
         // Apply translation
-        a.addPos(Vector2D.mult(mtv, aDir));
-        b.addPos(Vector2D.mult(mtv, bDir));
-
-        // Get edge normal
-        ArrayList<Vector2D> edges = aPoint ? b.getEdges() : a.getEdges();
-        Vector2D collisionPointer = aPoint ? Vector2D.sub(collisionPoint, b.getPos())
-                : Vector2D.sub(collisionPoint, a.getPos());
-
-        smallestAngle = Float.POSITIVE_INFINITY;
-        Vector2D normalEdge = new Vector2D(0f, 0f);
-
-        // Check edge normals for which one points toward the collision point most
-        for (Vector2D edge : edges) {
-            float angle = Math.abs(Vector2D.angleBetween(collisionPointer, edge.normal1())) % (float) Math.PI;
-
-            if (angle < smallestAngle) {
-                smallestAngle = angle;
-                normalEdge = edge.normal1();
-            }
+        if (a.getType() == BodyType.Dynamic && b.getType() == BodyType.Dynamic) {
+            a.addPos(mtvA);
+            b.addPos(mtvB);
+        } else if (a.getType() == BodyType.Dynamic) {
+            a.addPos(mtvA);
+        } else {
+            b.addPos(mtvB);
         }
 
-        float forceScalar = a.getLinearVelocity().mag() * (mtv.mag() * a.getMass());
+        // Apply forces
+        float forceScalar = a.getForce().mag() * a.getLinearVelocity().mag() * 0.8f;
 
-        a.setLinearVelocity(new Vector2D(0f, 0f));
-        b.setLinearVelocity(new Vector2D(0f, 0f));
-
-        normalEdge.mult(forceScalar);
-
-        a.applyForce(normalEdge, Vector2D.sub(collisionPoint, a.getPos()));
-        b.applyForce(Vector2D.mult(normalEdge, -1f), Vector2D.sub(collisionPoint, b.getPos()));
+        a.applyForce(Vector2D.mult(mtvA, forceScalar), new Vector2D(0, 0));
+        b.applyForce(Vector2D.mult(mtvB, forceScalar), new Vector2D(0, 0));
 
         return true;
-    }
-
-    // TODO: Fix terrain collision detection with vertical sections
-    // Collide with the terrain
-    private boolean terrainCollision(RigidBody a, Terrain terra) {
-        // Find the the terrain points to the left and right of the body
-        // Indices of the closest terrain points outside of the body
-        int terrainLeft = 0;
-        int terrainRight = 0;
-
-        float minDifference1 = Float.POSITIVE_INFINITY;
-        float minDifference2 = Float.POSITIVE_INFINITY;
-
-        for (int i = 0; i < terra.getTerrain().size(); i++) {
-            // Save the x dimnension
-            float x = terra.getTerrain().get(i).getX();
-
-            // Check if the position is on the left or right side
-            if (a.getMinX() - x > 0 && a.getMinX() - x < minDifference1) {
-                minDifference1 = a.getMinX() - x;
-                terrainLeft = i;
-            } else if (x - a.getMaxX() > 0 && x - a.getMaxX() < minDifference2) {
-                minDifference2 = x - a.getMaxX();
-                terrainRight = i;
-            } else {
-                continue;
-            }
-        }
-
-        boolean collision = false;
-
-        // Check if any point of the body is below the
-        // previously calculated terrain points
-        for (int i = terrainLeft; i < terrainRight; i++) {
-            Vector2D terrainPoint = terra.getTerrain().get(i);
-            Vector2D terrainEdge = terra.getEdges().get(i);
-            Vector2D terrainNormal = terra.getNormals().get(i);
-
-            float minDist = Float.POSITIVE_INFINITY;
-
-            // Loop through all points in the body
-            // and check for collision
-            for (Vector2D point : a.getPoints()) {
-                Vector2D tPointToRBPoint = Vector2D.sub(point, terrainPoint);
-
-                Vector2D projection = Vector2D.mult(Vector2D.norm(terrainEdge), Vector2D.dot(terrainEdge, tPointToRBPoint) / terrainEdge.mag());
-
-                // Check if the point is within the bounds of the edge
-                if (projection.mag() < terrainEdge.mag()) {
-
-                    float angleToEdge = Vector2D.angleBetween(tPointToRBPoint, terrainEdge);
-
-                    // Check if the point is opposite of the normal
-                    if (angleToEdge < 0f && angleToEdge > -Math.PI) {
-                        // Calculate minimum distance
-                        minDist = Math.abs(Math.min(minDist, tPointToRBPoint.mag() * (float) Math.sin(angleToEdge)));
-
-                        // Apply rebounding force //
-                        float forceScalar = RigidBody.GRAVITY.mag() * a.getLinearMomentum().mag()
-                                * (minDist * a.getMass());
-
-                        a.applyForce(Vector2D.mult(terrainNormal, forceScalar), Vector2D.sub(point, a.getPos()));
-                    }
-                }
-            }
-
-            // Adjust position if there was a collision
-            if (minDist < Float.POSITIVE_INFINITY) {
-                a.addPos(Vector2D.mult(terrainNormal, minDist));
-                collision = true;
-            }
-        }
-
-        return collision;
     }
 }

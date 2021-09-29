@@ -2,7 +2,6 @@ package Display;
 
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Vector;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Graphics;
@@ -20,7 +19,6 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     private static final long serialVersionUID = 1L;
 
     public ArrayList<RigidBody> shapes = new ArrayList<>();
-    public ArrayList<Terrain> terrains = new ArrayList<>();
 
     public static float timeStep = 1000f / 144f;
     public Timer gameTimer = new Timer((int)timeStep, this);
@@ -32,11 +30,9 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
     private RigidBody square = new RigidBody(300, 400, 50, 50, 10);
     private RigidBody rectangle = new RigidBody(670, 350, 100, 200, 10);
-    private RigidBody box = new RigidBody(150, 500, 236, 185, 1);
+    private RigidBody box = new RigidBody(0, Run.HEIGHT - 200, Run.WIDTH * 2, 200, 1);
 
     private RigidBody player = new RigidBody(400, 0, 25, 25, 10);
-
-    private Terrain ground = new Terrain();
 
     public Canvas() {
         setBackground(new Color(50, 50, 50));
@@ -47,7 +43,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         // Add in the rest of the rigidbodies and
         // save ina list
         shapes.add(square);
-        shapes.add(rectangle);
+        //shapes.add(rectangle);
         shapes.add(box);
         //shapes.add(player);
 
@@ -56,18 +52,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         //shapes.get(1).applyForce(new Vector2D(-5, 0), new Vector2D(0, 0));
         //shapes.get(1).applyForce(new Vector2D(-10, 0), new Vector2D(0, -100));
 
-        // Create a terrain
-        ground.addPoint(new Vector2D(0, 200));
-        ground.addPoint(new Vector2D(0, 50));
-        ground.addPoint(new Vector2D(250, 50));
-        ground.addPoint(new Vector2D(500, 200));
-        ground.addPoint(new Vector2D(800, 200));
-        ground.addPoint(new Vector2D(810, 300));
-        ground.addPoint(new Vector2D(1000, 300));
-
-        terrains.add(ground);
-
-        CD = new CollisionDetector(this.shapes, this.terrains);
+        CD = new CollisionDetector(this.shapes);
 
         // Start the timer for the game loop
         gameTimer.start();
@@ -108,12 +93,6 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
             // );
             // g2.rotate(-body.getAngle(), body.getPos().getX(), body.getPos().getY());
         }
-
-        
-
-        // Draw the ground
-        ground.draw(g2);
-        ground.drawNormals(g2); // Debugging
     }
 
     // Get keyboard input from the user
