@@ -180,12 +180,12 @@ public class CollisionDetector {
 
         if (axisBody == b) {
             oppBody = a;
-            mtvA = Vector2D.mult(smallestAxis, overlap);
-            mtvB = Vector2D.mult(smallestAxis, -overlap);
-        } else {
-            oppBody = b;
             mtvA = Vector2D.mult(smallestAxis, -overlap);
             mtvB = Vector2D.mult(smallestAxis, overlap);
+        } else {
+            oppBody = b;
+            mtvA = Vector2D.mult(smallestAxis, overlap);
+            mtvB = Vector2D.mult(smallestAxis, -overlap);
         }
         
         // Find the collision point
@@ -222,7 +222,7 @@ public class CollisionDetector {
         //a.setLinearVelocity(new Vector2D(0, 0));
         //b.setLinearVelocity(new Vector2D(0, 0));
 
-        a.applyForce(Vector2D.mult(mtvA, forceScalar), Vector2D.sub(collisionPoint, a.getPos()));
+        a.applyForce(Vector2D.mult(mtvA, 1f), Vector2D.sub(collisionPoint, a.getPos()));
         b.applyForce(Vector2D.mult(mtvB, forceScalar), Vector2D.sub(collisionPoint, b.getPos()));
 
         return true;

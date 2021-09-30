@@ -28,10 +28,10 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
     private CollisionDetector CD;
 
-    private RigidBody square = new RigidBody(300, 400, 50, 50, 10);
+    private RigidBody square = new RigidBody(500, 400, 50, 50, 10);
     private RigidBody rectangle = new RigidBody(670, 350, 100, 200, 10);
     private RigidBody box = new RigidBody(0, Run.HEIGHT - 200, Run.WIDTH, 200, 1);
-    private RigidBody box2 = new RigidBody (Run.WIDTH / 2, Run.HEIGHT - 200, Run.WIDTH, 200, 1);
+    private RigidBody box2 = new RigidBody (920, Run.HEIGHT - 580, Run.WIDTH, 200, 1);
 
     private RigidBody player = new RigidBody(400, 0, 25, 25, 10);
 
@@ -41,16 +41,16 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
         // Create a static, unmovable rigidbody
         box.setType(BodyType.Static);
         box2.setType(BodyType.Static);
-        box2.setAngle((float)-Math.PI / 3);
+        box2.setAngle((float)-Math.PI / 4);
 
         // Add in the rest of the rigidbodies and
         // save ina list
-        shapes.add(square);
+        //shapes.add(square);
         //shapes.add(rectangle);
         shapes.add(box);
-        //shapes.add(box2);
-        shapes.add(rectangle);
-        //shapes.add(player);
+        shapes.add(box2);
+        //shapes.add(rectangle);
+        shapes.add(player);
 
         shapes.get(0).applyForce(new Vector2D(10, 0), new Vector2D(0, -5));
         rectangle.applyForce(new Vector2D(-30, 0), new Vector2D(0, 0));
@@ -105,16 +105,20 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
 
+        Vector2D playerVelocity = player.getLinearVelocity();
+
         if (keyCode == KeyEvent.VK_W) {
-            player.applyForce(new Vector2D(0, -1f), new Vector2D(0, 0));
+            if (player.getCollisionState()) {
+                player.setLinearVelocity(new Vector2D(playerVelocity.getX(), -5f));
+            }
         }
 
         if (keyCode == KeyEvent.VK_S) {
-            player.applyForce(new Vector2D(0, 1f), new Vector2D(0, 0));
+            player.applyForce(new Vector2D(0, 2f), new Vector2D(0, 0));
         }
 
         if (keyCode == KeyEvent.VK_A) {
-            player.applyForce(new Vector2D(-1f, 0f), new Vector2D(0, 0));
+            player.applyForce(new Vector2D(-2f, 0f), new Vector2D(0, 0));
         }
 
         if (keyCode == KeyEvent.VK_D) {
@@ -127,13 +131,13 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         delay++;
         if (delay > 100) {
-            // Detect possible collisions
-            CD.detectCollision(this.shapes);
-
             // Update all rigidbodies
             for (RigidBody body : shapes) {
                 body.update();
             }
+
+            // Detect possible collisions
+            CD.detectCollision(this.shapes);
         }
 
         // Draws to screen

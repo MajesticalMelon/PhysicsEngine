@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class RigidBody {
     // Gravity
-    public static Vector2D GRAVITY = new Vector2D(0, 0.00f);
+    public static Vector2D GRAVITY = new Vector2D(0, 0.009f);
 
     // Initial variables
     private float width, height, mass;
@@ -86,14 +86,19 @@ public class RigidBody {
                 }
 
                 // Check if the angle is close to the polygon's interior angles
-                if (this.rotation % interiorAngle > interiorAngle - 0.0001f || this.rotation % interiorAngle < 0.0001f) {
+                if (this.rotation % interiorAngle > interiorAngle - 0.0005f || this.rotation % interiorAngle < 0.0005f) {
                     // Stop rotating at slow velocities
-                    if (Math.abs(this.angVel) < 0.001f) {
+                    if (Math.abs(this.angVel) < 0.01f) {
                         this.angVel = 0f;
                     }
                 }
 
                 
+            }
+
+            // Limit velocity
+            if (this.linVel.mag() > 10f) {
+                this.linVel = Vector2D.mult(Vector2D.norm(this.linVel), 5f);
             }
 
             // Update position
@@ -207,6 +212,10 @@ public class RigidBody {
         return this.momentOfInertia;
     }
 
+    public boolean getCollisionState() {
+        return this.isColliding;
+    }
+
     public BodyType getType() {
         return this.type;
     }
@@ -220,6 +229,7 @@ public class RigidBody {
         this.angVel = angle - this.rotation;
         movePoints();
         calculateEdges();
+        arrangePoints();
         this.rotation += this.angVel;
         this.angVel = tmp;
     }
