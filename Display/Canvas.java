@@ -30,7 +30,7 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
     private RigidBody square = new RigidBody(500, 400, 50, 50, 10);
     private RigidBody rectangle = new RigidBody(670, 350, 100, 200, 10);
-    private RigidBody box = new RigidBody(0, Run.HEIGHT - 200, Run.WIDTH, 200, 1);
+    private RigidBody box = new RigidBody(50, Run.HEIGHT - 200, Run.WIDTH, 200, 1);
     private RigidBody box2 = new RigidBody (920, Run.HEIGHT - 580, Run.WIDTH, 200, 1);
 
     private RigidBody player = new RigidBody(400, 0, 25, 25, 10);
@@ -45,12 +45,12 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
         // Add in the rest of the rigidbodies and
         // save ina list
-        //shapes.add(square);
+        shapes.add(square);
         //shapes.add(rectangle);
         shapes.add(box);
-        shapes.add(box2);
-        //shapes.add(rectangle);
-        shapes.add(player);
+        //shapes.add(box2);
+        shapes.add(rectangle);
+        //shapes.add(player);
 
         shapes.get(0).applyForce(new Vector2D(10, 0), new Vector2D(0, -5));
         rectangle.applyForce(new Vector2D(-30, 0), new Vector2D(0, 0));
@@ -84,7 +84,23 @@ public class Canvas extends JPanel implements ActionListener, KeyListener {
 
         // Draw all rigidbodies
         for (RigidBody body : shapes) {
+            g2.setColor(body.getTint());
             g2.draw(body.getPolygon());
+
+            // Draw normals
+            for (int i = 0; i < body.getPoints().size(); i++) {
+                Vector2D point = body.getPoints().get(i);
+                Vector2D edge = body.getEdges().get(i);
+
+                Vector2D midPoint = Vector2D.add(point, Vector2D.div(edge, 2));
+
+                g2.drawLine(
+                    (int)midPoint.getX(), 
+                    (int)midPoint.getY(), 
+                    (int)(edge.normal2().getX() * 10 + midPoint.getX()), 
+                    (int)(edge.normal2().getY() * 10 + midPoint.getY())
+                    );
+            }
 
             // Draw images - Make sure to rotate
             // g2.rotate(body.getAngle(), body.getPos().getX(), body.getPos().getY());

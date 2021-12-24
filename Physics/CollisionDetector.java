@@ -1,6 +1,9 @@
 package Physics;
 
+import java.awt.Color;
 import java.util.ArrayList;
+
+import javax.swing.text.AttributeSet.ColorAttribute;
 
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
@@ -93,12 +96,12 @@ public class CollisionDetector {
 
         // Get the normals for a
         for (int i = 0; i < a.getEdges().size(); i++) {
-            perpStack.add(a.getEdges().get(i).normal1());
+            perpStack.add(a.getEdges().get(i).normal2());
         }
 
         // Get the normals for b
         for (int i = 0; i < b.getEdges().size(); i++) {
-            perpStack.add(b.getEdges().get(i).normal1());
+            perpStack.add(b.getEdges().get(i).normal2());
         }
 
         for (int i = 0; i < perpStack.size(); i++) {
@@ -114,7 +117,7 @@ public class CollisionDetector {
             // perpendicular line
             //// Projects each polygon ////
             for (int j = 0; j < a.getPoints().size(); j++) {
-                dot = Vector2D.dot(perpStack.get(i), a.getPoints().get(j));
+                dot = Vector2D.dot(a.getPoints().get(j), perpStack.get(i));
 
                 if (dot < aMin) {
                     aMin = dot;
@@ -126,7 +129,7 @@ public class CollisionDetector {
             }
 
             for (int j = 0; j < b.getPoints().size(); j++) {
-                dot = Vector2D.dot(perpStack.get(i), b.getPoints().get(j));
+                dot = Vector2D.dot(b.getPoints().get(j), perpStack.get(i));
 
                 if (dot < bMin) {
                     bMin = dot;
@@ -147,6 +150,15 @@ public class CollisionDetector {
                     if (currentOverlap < overlap) {
                         overlap = currentOverlap;
                         smallestAxis = perpStack.get(i); // Assign the direction of translation
+
+                        // Determine which body contained the smallest axis
+                        if (i < 4) {
+                            // First 4 perpendicular lines in the stack
+                            // crom from 'a'
+                            axisBody = a;
+                        } else {
+                            axisBody = b;
+                        }
                     }
                 }
 
@@ -158,36 +170,49 @@ public class CollisionDetector {
                     if (currentOverlap < overlap) {
                         overlap = currentOverlap;
                         smallestAxis = perpStack.get(i); // Assign the direction of translation
-                    }
-                }
 
-                if (i < 4) {
-                    axisBody = a;
-                } else {
-                    axisBody = b;
+                        // Determine which body contained the smallest axis
+                        if (i < 4) {
+                            // First 4 perpendicular lines in the stack
+                            // come from 'a'
+                            axisBody = a;
+                        } else {
+                            axisBody = b;
+                        }
+                    }
                 }
 
                 continue;
             } else {
+                a.setTint(Color.WHITE);
+                b.setTint(Color.WHITE);
                 return false;
             }
         }
 
-        // Calculate the Minimum Translation Vector
-        RigidBody oppBody;
-        Vector2D mtvA;
-        Vector2D mtvB;
+        System.out.println(overlap);
 
+        // Calculate the Minimum Translation Vector
+        RigidBody oppBody = null;
+
+        Vector2D mtvA = new Vector2D(0, 0);
+        Vector2D mtvB = new Vector2D(0, 0);
+
+        // Determine direction based on where the smallest axis came from
         if (axisBody == b) {
             oppBody = a;
-            mtvA = Vector2D.mult(smallestAxis, -overlap);
-            mtvB = Vector2D.mult(smallestAxis, overlap);
-        } else {
-            oppBody = b;
             mtvA = Vector2D.mult(smallestAxis, overlap);
             mtvB = Vector2D.mult(smallestAxis, -overlap);
+        } else if (axisBody == a) {
+            oppBody = b;
+            mtvA = Vector2D.mult(smallestAxis, -overlap);
+            mtvB = Vector2D.mult(smallestAxis, overlap);
         }
-        
+
+        // Show which body is which in the collision
+        axisBody.setTint(Color.red);
+        oppBody.setTint(Color.blue);
+
         // Find the collision point
         float maxDist = Float.MIN_VALUE;
         Vector2D collisionPoint = new Vector2D(0, 0);
@@ -210,20 +235,20 @@ public class CollisionDetector {
             b.addPos(mtvB);
         } else if (a.getType() == BodyType.Dynamic) {
             a.addPos(mtvA);
-        } else {
+        } else if (b.getType() == BodyType.Dynamic) {
             b.addPos(mtvB);
         }
-
-        
 
         // Apply forces
         float forceScalar = (a.getLinearMomentum().mag() + b.getLinearMomentum().mag()) / (a.getMass() + b.getMass());
 
-        //a.setLinearVelocity(new Vector2D(0, 0));
-        //b.setLinearVelocity(new Vector2D(0, 0));
+        // a.setLinearVelocity(new Vector2D(0, 0));
+        // b.setLinearVelocity(new Vector2D(0, 0));
 
-        a.applyForce(Vector2D.mult(mtvA, 1f), Vector2D.sub(collisionPoint, a.getPos()));
-        b.applyForce(Vector2D.mult(mtvB, forceScalar), Vector2D.sub(collisionPoint, b.getPos()));
+        // a.applyForce(Vector2D.mult(mtvA, 1f), Vector2D.sub(collisionPoint,
+        // a.getPos()));
+        // b.applyForce(Vector2D.mult(mtvB, forceScalar), Vector2D.sub(collisionPoint,
+        // b.getPos()));
 
         return true;
     }

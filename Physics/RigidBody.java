@@ -1,6 +1,7 @@
 package Physics;
 
 import java.awt.Polygon;
+import java.awt.Color;
 import java.awt.geom.AffineTransform;
 
 import java.util.ArrayList;
@@ -37,6 +38,9 @@ public class RigidBody {
     private float maxY = 0;
     private float minX = 0;
     private float minY = 0;
+
+    // Drawing
+    private Color tint = Color.WHITE;
 
     public RigidBody(float cx, float cy, float w, float h, float m) {
         this.pos = new Vector2D(cx, cy);
@@ -255,6 +259,10 @@ public class RigidBody {
         this.mass = 1f;
     }
 
+    public void setTint(Color color) {
+        this.tint = color;
+    }
+
     public void addPos(Vector2D p) {
         if (this.type != BodyType.Static) {
             for (Vector2D v : this.points) {
@@ -331,5 +339,9 @@ public class RigidBody {
 
     public Vector2D getMinPoint() {
         return new Vector2D(getMinX(), getMinY());
+    }
+
+    public Color getTint() {
+        return this.tint;
     }
 }
