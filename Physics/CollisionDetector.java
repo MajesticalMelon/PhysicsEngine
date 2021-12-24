@@ -70,7 +70,7 @@ public class CollisionDetector {
         // Loop through the sorted X pos's and check
         // if 2 consecutive points are the same
         for (int i = 0; i < posX.size() - 1; i++) {
-            if ((int) posX.get(i).getY() != (int) posX.get(i + 1).getY()) {
+            //if ((int) posX.get(i).getY() != (int) posX.get(i + 1).getY()) {
                 RigidBody a = s.get((int) posX.get(i).getY());
                 RigidBody b = s.get((int) posX.get(i + 1).getY());
 
@@ -79,7 +79,7 @@ public class CollisionDetector {
                     // Detect and resolve collisions between two bodies
                     a.setCollisionState(SAT(a, b));
                 }
-            }
+            //}
         }
     }
 
@@ -91,6 +91,7 @@ public class CollisionDetector {
         float overlap = Float.MAX_VALUE;
         Vector2D smallestAxis = new Vector2D(0, 0);
         RigidBody axisBody = null;
+        RigidBody oppBody = null;
 
         // Calculate vectors perpendicular to each polygon's edges
 
@@ -143,42 +144,21 @@ public class CollisionDetector {
             // Check if bounds of dot products for each polygon intersect
             // Continue to check until out of points or until the condition is not met
             if ((aMin < bMax && aMin > bMin) || (aMax > bMin && aMax < bMax)) {
+                float currentOverlap = Math.abs(aMin - bMax);
 
-                if (aMin < bMax && aMin > bMin) {
-                    float currentOverlap = Math.abs(aMin - bMax);
+                if (currentOverlap < overlap) {
+                    overlap = currentOverlap;
+                    smallestAxis = perpStack.get(i); // Assign the direction of translation
 
-                    if (currentOverlap < overlap) {
-                        overlap = currentOverlap;
-                        smallestAxis = perpStack.get(i); // Assign the direction of translation
-
-                        // Determine which body contained the smallest axis
-                        if (i < 4) {
-                            // First 4 perpendicular lines in the stack
-                            // crom from 'a'
-                            axisBody = a;
-                        } else {
-                            axisBody = b;
-                        }
-                    }
-                }
-
-                if (aMax > bMin && aMax < bMax) {
-                    // Get the minimum amount of overlap in order to calculate
-                    // the min translation vec
-                    float currentOverlap = Math.abs(aMax - bMin);
-
-                    if (currentOverlap < overlap) {
-                        overlap = currentOverlap;
-                        smallestAxis = perpStack.get(i); // Assign the direction of translation
-
-                        // Determine which body contained the smallest axis
-                        if (i < 4) {
-                            // First 4 perpendicular lines in the stack
-                            // come from 'a'
-                            axisBody = a;
-                        } else {
-                            axisBody = b;
-                        }
+                    // Determine which body contained the smallest axis
+                    if (i < 4) {
+                        // First 4 perpendicular lines in the stack
+                        // crom from 'a'
+                        axisBody = a;
+                        oppBody = b;
+                    } else {
+                        axisBody = b;
+                        oppBody = a;
                     }
                 }
 
@@ -193,21 +173,8 @@ public class CollisionDetector {
         System.out.println(overlap);
 
         // Calculate the Minimum Translation Vector
-        RigidBody oppBody = null;
-
-        Vector2D mtvA = new Vector2D(0, 0);
-        Vector2D mtvB = new Vector2D(0, 0);
-
-        // Determine direction based on where the smallest axis came from
-        if (axisBody == b) {
-            oppBody = a;
-            mtvA = Vector2D.mult(smallestAxis, overlap);
-            mtvB = Vector2D.mult(smallestAxis, -overlap);
-        } else if (axisBody == a) {
-            oppBody = b;
-            mtvA = Vector2D.mult(smallestAxis, -overlap);
-            mtvB = Vector2D.mult(smallestAxis, overlap);
-        }
+        Vector2D oppTranslation = Vector2D.mult(smallestAxis, overlap); // points away from axis body
+        Vector2D axisTranslation = Vector2D.mult(oppTranslation, -1f);
 
         // Show which body is which in the collision
         axisBody.setTint(Color.red);
@@ -229,26 +196,28 @@ public class CollisionDetector {
             }
         }
 
-        // Apply translation
-        if (a.getType() == BodyType.Dynamic && b.getType() == BodyType.Dynamic) {
-            a.addPos(mtvA);
-            b.addPos(mtvB);
-        } else if (a.getType() == BodyType.Dynamic) {
-            a.addPos(mtvA);
-        } else if (b.getType() == BodyType.Dynamic) {
-            b.addPos(mtvB);
+        // Apply translations to Dynamic bodies
+        if (axisBody.getType() == BodyType.Dynamic && oppBody.getType() == BodyType.Dynamic) {
+            axisBody.addPos(axisTranslation);
+            oppBody.addPos(oppTranslation);
+        } else if (axisBody.getType() == BodyType.Dynamic) {
+            axisBody.addPos(axisTranslation);
+        } else if (oppBody.getType() == BodyType.Dynamic) {
+            oppBody.addPos(oppTranslation);
         }
 
-        // Apply forces
+        // How much force should be applied?
         float forceScalar = (a.getLinearMomentum().mag() + b.getLinearMomentum().mag()) / (a.getMass() + b.getMass());
 
-        // a.setLinearVelocity(new Vector2D(0, 0));
-        // b.setLinearVelocity(new Vector2D(0, 0));
+        // Determine forces
+        Vector2D axisForce = Vector2D.mult(Vector2D.norm(axisTranslation), forceScalar); 
+        Vector2D oppForce = Vector2D.mult(Vector2D.norm(oppTranslation), forceScalar);
 
-        // a.applyForce(Vector2D.mult(mtvA, 1f), Vector2D.sub(collisionPoint,
-        // a.getPos()));
-        // b.applyForce(Vector2D.mult(mtvB, forceScalar), Vector2D.sub(collisionPoint,
-        // b.getPos()));
+        // Apply those forces
+        axisBody.applyForce(axisForce, Vector2D.sub(collisionPoint,
+        axisBody.getPos()));
+        oppBody.applyForce(oppForce, Vector2D.sub(collisionPoint,
+        oppBody.getPos()));
 
         return true;
     }
