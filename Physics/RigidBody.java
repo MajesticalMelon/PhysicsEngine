@@ -161,12 +161,19 @@ public class RigidBody {
     }
 
     private void arrangePoints() {
-        for (int i = 0; i < points.size() - 1; i++) {
-            maxX = Math.max(points.get(i).getX(), points.get(i + 1).getX());
-            maxY = Math.max(points.get(i).getY(), points.get(i + 1).getY());
+        // Reset max/min values
+        maxX = Float.NEGATIVE_INFINITY;
+        minX = Float.POSITIVE_INFINITY;
+        maxY = Float.NEGATIVE_INFINITY;
+        minY = Float.POSITIVE_INFINITY;
 
-            minX = Math.min(points.get(i).getX(), points.get(i + 1).getX());
-            minY = Math.min(points.get(i).getY(), points.get(i + 1).getY());
+        // Determine max/min value
+        for (int i = 0; i < points.size(); i++) {
+            maxX = Math.max(points.get(i).getX(), maxX);
+            maxY = Math.max(points.get(i).getY(), maxY);
+
+            minX = Math.min(points.get(i).getX(), minX);
+            minY = Math.min(points.get(i).getY(), minY);
         }
     }
 
