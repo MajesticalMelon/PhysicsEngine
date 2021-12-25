@@ -3,8 +3,6 @@ package Physics;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import javax.swing.text.AttributeSet.ColorAttribute;
-
 public class CollisionDetector {
     ArrayList<RigidBody> bodies = new ArrayList<>();
     public Vector2D min = new Vector2D(0, 0);
@@ -65,21 +63,30 @@ public class CollisionDetector {
             posX.add(new Vector2D(body.getMaxX(), i));
         }
 
+        // Sorts the list of x positions from least to greatest
         sort(posX, 0, posX.size() - 1);
 
         // Loop through the sorted X pos's and check
         // if 2 consecutive points are the same
-        for (int i = 0; i < posX.size() - 1; i++) {
-            //if ((int) posX.get(i).getY() != (int) posX.get(i + 1).getY()) {
-                RigidBody a = s.get((int) posX.get(i).getY());
-                RigidBody b = s.get((int) posX.get(i + 1).getY());
+        for (int i = 0; i < s.size(); i++) {
+            // if ((int) posX.get(i).getY() != (int) posX.get(i + 1).getY()) {
+            RigidBody a = s.get(i);
+
+            for (int j = 0; j < s.size(); j++) {
+                RigidBody b = s.get(j);
+
+                // Don't check collisions against the same shape
+                if (a == b) {
+                    continue;
+                }
 
                 // Make sure at least one body is dynamic
                 if (a.getType() == BodyType.Dynamic || b.getType() == BodyType.Dynamic) {
                     // Detect and resolve collisions between two bodies
                     a.setCollisionState(SAT(a, b));
                 }
-            //}
+            }
+            // }
         }
     }
 
@@ -170,7 +177,7 @@ public class CollisionDetector {
             }
         }
 
-        System.out.println(overlap);
+        // *** Code is reached in the event of a collision *** //
 
         // Calculate the Minimum Translation Vector
         Vector2D oppTranslation = Vector2D.mult(smallestAxis, overlap); // points away from axis body
@@ -181,7 +188,7 @@ public class CollisionDetector {
         oppBody.setTint(Color.blue);
 
         // Find the collision point
-        float maxDist = Float.MIN_VALUE;
+        float maxDist = Float.NEGATIVE_INFINITY;
         Vector2D collisionPoint = new Vector2D(0, 0);
 
         // Project each point onto the axisBody's position vector
@@ -207,17 +214,17 @@ public class CollisionDetector {
         }
 
         // How much force should be applied?
-        float forceScalar = (a.getLinearMomentum().mag() + b.getLinearMomentum().mag()) / (a.getMass() + b.getMass());
+        float forceScalar = (a.getLinearMomentum().mag() + b.getLinearMomentum().mag()) ;/// (a.getMass() + b.getMass());
 
         // Determine forces
-        Vector2D axisForce = Vector2D.mult(Vector2D.norm(axisTranslation), forceScalar); 
+        Vector2D axisForce =  Vector2D.mult(Vector2D.norm(axisTranslation), forceScalar);
         Vector2D oppForce = Vector2D.mult(Vector2D.norm(oppTranslation), forceScalar);
 
         // Apply those forces
         axisBody.applyForce(axisForce, Vector2D.sub(collisionPoint,
-        axisBody.getPos()));
+                axisBody.getPos()));
         oppBody.applyForce(oppForce, Vector2D.sub(collisionPoint,
-        oppBody.getPos()));
+                oppBody.getPos()));
 
         return true;
     }
