@@ -214,17 +214,36 @@ public class CollisionDetector {
         }
 
         // How much force should be applied?
-        float forceScalar = (a.getLinearMomentum().mag() + b.getLinearMomentum().mag()) ;/// (a.getMass() + b.getMass());
+        float forceScalar = (a.getLinearMomentum().mag() + b.getLinearMomentum().mag())  * 0.7f;/// (a.getMass() + b.getMass());
 
-        // Determine forces
+        // Determine reactive forces
         Vector2D axisForce =  Vector2D.mult(Vector2D.norm(axisTranslation), forceScalar);
         Vector2D oppForce = Vector2D.mult(Vector2D.norm(oppTranslation), forceScalar);
-
+        
         // Apply those forces
         axisBody.applyForce(axisForce, Vector2D.sub(collisionPoint,
                 axisBody.getPos()));
         oppBody.applyForce(oppForce, Vector2D.sub(collisionPoint,
                 oppBody.getPos()));
+
+        // Simulate friction on each body
+        float frictionScalar = 0.5f;
+
+        Vector2D frictionDirection = Vector2D.sub(collisionPoint,
+        axisBody.getPos()).normal1();
+        frictionDirection.mult(Math.signum(axisBody.getAngularVelocity()));
+
+        System.out.println(frictionDirection.getX() + ", " + frictionDirection.getY());
+
+        Vector2D axisFriction = Vector2D.mult(axisBody.getLinearVelocity(), -frictionScalar);
+
+        Vector2D oppFriction = Vector2D.mult(oppBody.getLinearVelocity(), -frictionScalar);
+
+        axisBody.applyForce(axisFriction, Vector2D.sub(collisionPoint,
+        axisBody.getPos()));
+
+        oppBody.applyForce(oppFriction, Vector2D.sub(collisionPoint,
+        oppBody.getPos()));
 
         return true;
     }
