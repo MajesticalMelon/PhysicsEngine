@@ -9,6 +9,13 @@
             "name": "Launch Run",
             "request": "launch",
             "mainClass": "Display.Run",
+            "projectName": "PhysicsEngine_fed6bb7f"
+        },
+        {
+            "type": "java",
+            "name": "Launch Run",
+            "request": "launch",
+            "mainClass": "Display.Run",
             "projectName": "PhysicsEngine_379b334"
         },
         {
